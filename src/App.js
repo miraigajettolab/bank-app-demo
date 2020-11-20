@@ -5,25 +5,33 @@ class App extends React.Component {
   constructor(props) {
 		super(props);
 		this.state = {
-      GetResponse : {}
+      GetResponse : {},
+      token: "baeb8c102e7004b1fd8e44d7659bb0bc991e9db9235ca10a77405f2bdfcec78d"
     };
     this.GetIt = this.GetIt.bind(this)
   }
 
-  GetIt(handle) {
+  GetIt(handle, addToken = false) {
     console.log(`Making a GET request to ${handle}`)
+    
+    let headerBuilder = {
+      'Access-Control-Allow-Headers': '*',
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+    if (addToken) {
+      headerBuilder['Auth-Token'] = this.state.token
+    }
+    console.log(headerBuilder)
     fetch(handle, {
       method: 'GET',
-      headers: {
-        'Access-Control-Allow-Headers': '*',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      }
+      headers: headerBuilder
     }).then(response => response.json()).then(data => this.setState({"GetResponse":data}))
   }
 
   componentDidMount() {
-    this.GetIt("https://bank-api.azurewebsites.net/query?table=Exchange&count=20")
+    //this.GetIt("https://bank-api.azurewebsites.net/query?table=Exchange&count=20", true)
+    this.GetIt("https://bank-api.azurewebsites.net/complex/3", true)
 	}
 
   render() {
