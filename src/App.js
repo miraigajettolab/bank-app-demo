@@ -23,7 +23,7 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    this.GetIt("https://bank-api.azurewebsites.net/")
+    this.GetIt("https://bank-api.azurewebsites.net/query?table=Exchange&count=20")
 	}
 
   render() {
