@@ -1,6 +1,7 @@
 var express = require('express'); 
 var app = express();
 const { Connection, Request } = require("tedious");
+var crypto = require('crypto');
 
 // Create connection to database
 const config = {
@@ -18,6 +19,8 @@ const config = {
       rowCollectionOnDone: true
     }
 };
+const salt = "cc4d9cf3d979a055caf6092bf2a8c76e" // Used to change token without changing Username or Password, this is public information
+const authHash = crypto.createHash('sha256').update(config.authentication.options.userName+salt+config.authentication.options.password).digest('hex');
 
 const connection = new Connection(config);
 
@@ -30,6 +33,10 @@ connection.on("connect", err => {
     }
   });
 
+function executeComplexQuery(query) {
+
+
+}
 
 // Start server
 var server = app.listen(process.env.PORT || 5000, function () {
@@ -41,6 +48,17 @@ var server = app.listen(process.env.PORT || 5000, function () {
 
 /* GET result of some SQL query */
 app.get('/query', function (req, res) {
+    console.log(req.headers)
+    if (!req.header('Auth-Token')) {
+      err = "ERR: You have to provide an admin token as 'Auth-Token' header to use this method. The token is generated as sha256(UserName + salt + Password), you can get salt at /get-salt"
+      console.error(err);
+      res.end(JSON.stringify(err))
+    }
+    if (req.header('Auth-Token') != authHash) {
+      err = "ERR: Authentication failed"
+      console.error(err);
+      res.end(JSON.stringify(err))
+    }
     if (!(req.query.table && req.query.count)) {
       err = "ERR: You have to provide a table name and count as ?table=TableName&count=NumberOfRows"
       console.error(err);
@@ -74,4 +92,8 @@ app.get('/query', function (req, res) {
     connection.execSql(request);
 });
 
+/* GET result of some SQL query */
+app.get('/get-salt', function (req, res) {
+    res.end(`{"salt": ${JSON.stringify(salt)}}`) // This salt is used to generate token
+});
 
