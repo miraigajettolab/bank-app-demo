@@ -95,7 +95,7 @@ function AdminQuery(sqlQuery, req) {
 /* GET result of some SQL query */
 app.get('/query', function (req, res) {
   let query = `SELECT TOP (${req.query.count}) * FROM [dbo].[${req.query.table}]` // SQL query
-  res.end(AdminQuery(query, req))
+  res.end(JSON.stringify(AdminQuery(query, req)))
 });
 
 /* GET result of some SQL query */
