@@ -33,11 +33,6 @@ connection.on("connect", err => {
     }
   });
 
-function executeComplexQuery(query) {
-
-
-}
-
 // Start server
 var server = app.listen(process.env.PORT || 5000, function () {
     var host = server.address().address
@@ -47,29 +42,28 @@ var server = app.listen(process.env.PORT || 5000, function () {
 });
 
 
-function AdminQuery(sqlQuery, req) {
-  console.log(req.headers)
+function AdminQuery(sqlQuery, req, res) {
   if (!req.header('Auth-Token')) {
-    err = "ERR: You have to provide an admin token as 'Auth-Token' header to use this method. The token is generated as sha256(UserName + salt + Password), you can get salt at /get-salt"
-    console.error(err);
-    return JSON.stringify(err)
+    err = "You have to provide an admin token as 'Auth-Token' header to use this method. The token is generated as sha256(UserName + salt + Password), you can get salt at /get-salt"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
   }
   if (req.header('Auth-Token') != authHash) {
-    err = "ERR: Authentication failed"
-    console.error(err);
-    return JSON.stringify(err)
+    err = "Authentication failed"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
   }
   if (!sqlQuery) {
-    err = "ERR: You have to provide a query"
-    console.error(err);
-    return JSON.stringify(err)
+    err = "You have to provide a query"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
   }
   const request = new Request(
     sqlQuery, // SQL query
     (err) => {
       if (err) {
         console.error("ERR:" + err.message);
-        return JSON.stringify(err)
+        res.end(`{"error":${JSON.stringify(err.message)}}`)
       }
     }
   );
@@ -87,7 +81,7 @@ function AdminQuery(sqlQuery, req) {
       filtered = filtered.slice(0, -1) // Removing trailing comma
       filtered += "]"
 
-      return `{"count": ${JSON.stringify(rowCount)}, "data": ${filtered}}` // Final response
+      res.end(`{"count": ${JSON.stringify(rowCount)}, "data": ${filtered}}`) // Final response
   });
   connection.execSql(request);
 }
@@ -95,8 +89,51 @@ function AdminQuery(sqlQuery, req) {
 /* GET result of some SQL query */
 app.get('/query', function (req, res) {
   let query = `SELECT TOP (${req.query.count}) * FROM [dbo].[${req.query.table}]` // SQL query
-  res.end(JSON.stringify(AdminQuery(query, req)))
+  AdminQuery(query, req, res)
 });
+
+app.get('/complex/1', function (req, res) {
+  let query = `SELECT ClientId, TelephoneNumber, FullName
+  FROM Clients
+  WHERE ClientId NOT IN (
+  SELECT DISTINCT ClientId
+  FROM (
+  SELECT  BankAccounts.ClientId, Transactions.Timestamp, Transactions.TransferAccountId, Clients.TelephoneNumber
+  FROM Transactions
+  JOIN BankAccounts ON BankAccounts.BankAccountId = Transactions.TransferAccountId
+  JOIN Clients ON BankAccounts.ClientId = Clients.ClientId
+  WHERE Transactions.Timestamp >= '${req.query.timestampStart}' and Transactions.Timestamp <= '${req.query.timestampEnd}'
+  ) AS tmp)` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/complex/2', function (req, res) {
+  let query = `SELECT Clients.FullName, Clients.TelephoneNumber FROM Clients
+  WHERE DAY(Clients.BirthDate) = ${req.query.day}
+  AND MONTH(Clients.BirthDate) = ${req.query.month}` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/complex/3', function (req, res) {
+  let query = `SELECT Transactions.TransactionId, Transactions.Total,Transactions.Currency, Transactions.Timestamp, Transactions.Status FROM Transactions
+  WHERE Transactions.Total > 600000 and Transactions.Currency = 'RUB'` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/complex/4', function (req, res) {
+  let query = `SELECT TOP(10) Transactions.AuthorisedWorkerId,  Workers.FullName, Count(*) AS 'Count' FROM Transactions
+  JOIN Workers ON Transactions.AuthorisedWorkerId = Workers.WorkerId
+  WHERE Transactions.Timestamp >= '${req.query.timestampStart}' and Transactions.Timestamp <= '${req.query.timestampEnd}'
+  GROUP BY AuthorisedWorkerId, FullName` // SQL query
+  AdminQuery(query, req, res)
+});
+
+/*
+app.get('/complex/', function (req, res) {
+  let query = `` // SQL query
+  AdminQuery(query, req, res)
+});
+*/
 
 /* GET result of some SQL query */
 app.get('/get-salt', function (req, res) {
