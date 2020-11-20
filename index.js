@@ -81,7 +81,7 @@ function AdminQuery(sqlQuery, req, res) {
       filtered = filtered.slice(0, -1) // Removing trailing comma
       filtered += "]"
 
-      res.end(`{"count": ${JSON.stringify(rowCount)}, "data": ${filtered}}`) // Final response
+      res.end(`{"count": ${JSON.stringify(rowCount)}, "data": ${rowCount == 0 ? "[]" : filtered}}`) // Final response
   });
   connection.execSql(request);
 }
