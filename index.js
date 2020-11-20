@@ -31,8 +31,8 @@ connection.on("connect", err => {
   });
 
 
-// Start server and listen on http://localhost:8081/
-var server = app.listen(8081, function () {
+// Start server
+var server = app.listen(process.env.PORT || 5000, function () {
     var host = server.address().address
     var port = server.address().port
 
