@@ -7,7 +7,7 @@ const config = {
     authentication: {
       options: {
         userName: "miraigajettolab", 
-        password: "" // Don't forget to escape characters that need it
+        password: "dk.fguhw43b7@t-8p3g4t\\`v08" // Don't forget to escape characters that need it
       },
       type: "default"
     },
