@@ -86,6 +86,40 @@ function AdminQuery(sqlQuery, req, res) {
   connection.execSql(request);
 }
 
+function FreeQuery(sqlQuery, req, res) {
+  if (!sqlQuery) {
+    err = "You have to provide a query"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  const request = new Request(
+    sqlQuery, // SQL query
+    (err) => {
+      if (err) {
+        console.error("ERR:" + err.message);
+        res.end(`{"error":${JSON.stringify(err.message)}}`)
+      }
+    }
+  );
+  request.on('doneInProc', function (rowCount, more, rows) { // This event is called after the request if completed
+      // There's too much metadata so we filter some of it out
+      let filtered = "["
+      rows.forEach(row => {
+          filtered += "{"
+          row.forEach(col => {
+              filtered += `"${col.metadata.colName}":"${col.value}",`
+          })
+          filtered = filtered.slice(0, -1) // Removing trailing comma
+          filtered += "},"
+      })
+      filtered = filtered.slice(0, -1) // Removing trailing comma
+      filtered += "]"
+
+      res.end(`{"count": ${JSON.stringify(rowCount)}, "data": ${rowCount == 0 ? "[]" : filtered}}`) // Final response
+  });
+  connection.execSql(request);
+}
+
 /* GET result of some SQL query */
 app.get('/query', function (req, res) {
   let query = `SELECT TOP (${req.query.count}) * FROM [dbo].[${req.query.table}]` // SQL query
@@ -134,6 +168,17 @@ app.get('/complex/', function (req, res) {
   AdminQuery(query, req, res)
 });
 */
+
+/* GET result of some SQL query */
+app.get('/exchange', function (req, res) {
+  let query = `SELECT TOP (1000) * FROM [dbo].[Exchange]` // SQL query
+  FreeQuery(query, req, res)
+});
+
+app.get('/services', function (req, res) {
+  let query = `SELECT TOP (1000) * FROM [dbo].[Services]` // SQL query
+  FreeQuery(query, req, res)
+});
 
 /* GET result of some SQL query */
 app.get('/get-salt', function (req, res) {
