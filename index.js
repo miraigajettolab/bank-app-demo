@@ -39,6 +39,11 @@ var server = app.listen(process.env.PORT || 5000, function () {
     console.log(`app listening at http://${host}:${port}`)
 });
 
+app.all('/', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  next()
+});
 
 /* GET result of some SQL query */
 app.get('/', function (req, res) {
