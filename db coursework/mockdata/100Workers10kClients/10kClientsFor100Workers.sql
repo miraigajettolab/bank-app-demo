@@ -1,5 +1,6 @@
 USE BankTest
 GO
+/****** !!!!!! REMOVE USE STATEMENT ABOVE, BEFORE USING AZURE !!!!!! ******/
 
 EXEC Add_Client '1367103727', 'Mary Edwards', '1997-6-11', '41', NULL, 89909401483, NULL;
 EXEC Add_Client '7444456155', 'Richard Norton', '2005-1-18', '79', NULL, 89291457590, NULL;

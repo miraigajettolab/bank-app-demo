@@ -1,5 +1,6 @@
 USE BankTest
 GO
+/****** !!!!!! REMOVE USE STATEMENT ABOVE, BEFORE USING AZURE !!!!!! ******/
 
 EXEC Add_Worker '8463554599', 'Joseph Geigel', '1992-6-7', '357745011689', 'mellowGatorade643', '!o)Ce%ZX&DfJ8c1pAqxmZlmemndAh1';
 EXEC Add_Worker '6131494618', 'John Fraise', '1983-4-14', '481515423392', 'pleasedLollies537', 'cOtK?o(vDxy5Uk%%b0n-KVfoGlCA';
