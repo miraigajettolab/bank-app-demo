@@ -40,9 +40,14 @@ var server = app.listen(process.env.PORT || 5000, function () {
 });
 
 /* GET result of some SQL query */
-app.get('/', function (req, res) {
+app.get('/query', function (req, res) {
+    if (!(req.query.table && req.query.count)) {
+      err = "ERR: You have to provide a table name and count as ?table=TableName&count=NumberOfRows"
+      console.error(err);
+      res.end(JSON.stringify(err))
+    }
     const request = new Request(
-      `SELECT TOP (10) * FROM [dbo].[Auth]`, // SQL query
+      `SELECT TOP (${req.query.count}) * FROM [dbo].[${req.query.table}]`, // SQL query
       (err) => {
         if (err) {
           console.error("ERR:" + err.message);
