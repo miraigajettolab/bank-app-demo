@@ -46,50 +46,56 @@ var server = app.listen(process.env.PORT || 5000, function () {
     console.log(`app listening at http://${host}:${port}`)
 });
 
+
+function AdminQuery(sqlQuery, req) {
+  console.log(req.headers)
+  if (!req.header('Auth-Token')) {
+    err = "ERR: You have to provide an admin token as 'Auth-Token' header to use this method. The token is generated as sha256(UserName + salt + Password), you can get salt at /get-salt"
+    console.error(err);
+    return JSON.stringify(err)
+  }
+  if (req.header('Auth-Token') != authHash) {
+    err = "ERR: Authentication failed"
+    console.error(err);
+    return JSON.stringify(err)
+  }
+  if (!sqlQuery) {
+    err = "ERR: You have to provide a query"
+    console.error(err);
+    return JSON.stringify(err)
+  }
+  const request = new Request(
+    sqlQuery, // SQL query
+    (err) => {
+      if (err) {
+        console.error("ERR:" + err.message);
+        return JSON.stringify(err)
+      }
+    }
+  );
+  request.on('doneInProc', function (rowCount, more, rows) { // This event is called after the request if completed
+      // There's too much metadata so we filter some of it out
+      let filtered = "["
+      rows.forEach(row => {
+          filtered += "{"
+          row.forEach(col => {
+              filtered += `"${col.metadata.colName}":"${col.value}",`
+          })
+          filtered = filtered.slice(0, -1) // Removing trailing comma
+          filtered += "},"
+      })
+      filtered = filtered.slice(0, -1) // Removing trailing comma
+      filtered += "]"
+
+      res.end(`{"count": ${JSON.stringify(rowCount)}, "data": ${filtered}}`) // Final response
+  });
+  connection.execSql(request);
+}
+
 /* GET result of some SQL query */
 app.get('/query', function (req, res) {
-    console.log(req.headers)
-    if (!req.header('Auth-Token')) {
-      err = "ERR: You have to provide an admin token as 'Auth-Token' header to use this method. The token is generated as sha256(UserName + salt + Password), you can get salt at /get-salt"
-      console.error(err);
-      res.end(JSON.stringify(err))
-    }
-    if (req.header('Auth-Token') != authHash) {
-      err = "ERR: Authentication failed"
-      console.error(err);
-      res.end(JSON.stringify(err))
-    }
-    if (!(req.query.table && req.query.count)) {
-      err = "ERR: You have to provide a table name and count as ?table=TableName&count=NumberOfRows"
-      console.error(err);
-      res.end(JSON.stringify(err))
-    }
-    const request = new Request(
-      `SELECT TOP (${req.query.count}) * FROM [dbo].[${req.query.table}]`, // SQL query
-      (err) => {
-        if (err) {
-          console.error("ERR:" + err.message);
-          res.end(JSON.stringify(err))
-        }
-      }
-    );
-    request.on('doneInProc', function (rowCount, more, rows) { // This event is called after the request if completed
-        // There's too much metadata so we filter some of it out
-        let filtered = "["
-        rows.forEach(row => {
-            filtered += "{"
-            row.forEach(col => {
-                filtered += `"${col.metadata.colName}":"${col.value}",`
-            })
-            filtered = filtered.slice(0, -1) // Removing trailing comma
-            filtered += "},"
-        })
-        filtered = filtered.slice(0, -1) // Removing trailing comma
-        filtered += "]"
-
-        res.end(`{"count": ${JSON.stringify(rowCount)}, "data": ${filtered}}`) // Final response
-    });
-    connection.execSql(request);
+  let query = `SELECT TOP (${req.query.count}) * FROM [dbo].[${req.query.table}]` // SQL query
+  res.end(AdminQuery(query, req))
 });
 
 /* GET result of some SQL query */
