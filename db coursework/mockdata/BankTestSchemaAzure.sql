@@ -91,13 +91,13 @@ GO
 CREATE VIEW [dbo].[ClientData] as 
 SELECT * FROM Clients
 GO
-/****** Object:  Table [dbo].[BankTestAccounts]    Script Date: 2020/11/18 19:58:23 ******/
+/****** Object:  Table [dbo].[BankAccounts]    Script Date: 2020/11/18 19:58:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[BankTestAccounts](
-	[BankTestAccountId] [int] IDENTITY(1,1) NOT NULL,
+CREATE TABLE [dbo].[BankAccounts](
+	[BankAccountId] [int] IDENTITY(1,1) NOT NULL,
 	[IsDebit] [bit] NOT NULL,
 	[ServiceId] [int] NOT NULL,
 	[Total] [money] NOT NULL,
@@ -105,9 +105,9 @@ CREATE TABLE [dbo].[BankTestAccounts](
 	[Currency] [varchar](3) NOT NULL,
 	[ClientId] [int] NOT NULL,
 	[AccumulatedInterest] [money] NULL,
- CONSTRAINT [PK_BankTestAccounts] PRIMARY KEY CLUSTERED 
+ CONSTRAINT [PK_BankAccounts] PRIMARY KEY CLUSTERED 
 (
-	[BankTestAccountId] ASC
+	[BankAccountId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
@@ -117,7 +117,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE VIEW [dbo].[AccountsData] as 
-SELECT ClientId, IsDebit, ServiceId, Total, DateOfCreation, Currency, AccumulatedInterest FROM BankTestAccounts
+SELECT ClientId, IsDebit, ServiceId, Total, DateOfCreation, Currency, AccumulatedInterest FROM BankAccounts
 WHERE ClientId = 2 --ClientID
 GO
 /****** Object:  Table [dbo].[Services]    Script Date: 2020/11/18 19:58:23 ******/
@@ -202,8 +202,8 @@ GO
 --4. Транзакции клиента
 CREATE VIEW [dbo].[ClientTransactionsData] as 
 SELECT ClientId, TransactionId, SourceAccountId, TransferAccountId, Transactions.Total, Timestamp, Transactions.Currency, AuthorisedWorkerId, Status FROM Transactions
-JOIN BankTestAccounts ON Transactions.TransferAccountId = BankTestAccounts.BankTestAccountId
-WHERE BankTestAccounts.ClientId = 2 --ClientID
+JOIN BankAccounts ON Transactions.TransferAccountId = BankAccounts.BankAccountId
+WHERE BankAccounts.ClientId = 2 --ClientID
 GO
 /****** Object:  View [dbo].[TransactionsData]    Script Date: 2020/11/18 19:58:23 ******/
 SET ANSI_NULLS ON
@@ -306,15 +306,15 @@ CREATE UNIQUE INDEX UC_Workers_TaxId
   ON Workers(TaxId)
 GO
 
-ALTER TABLE [dbo].[BankTestAccounts]  WITH CHECK ADD  CONSTRAINT [FK_BankTestAccounts_Clients] FOREIGN KEY([ClientId])
+ALTER TABLE [dbo].[BankAccounts]  WITH CHECK ADD  CONSTRAINT [FK_BankAccounts_Clients] FOREIGN KEY([ClientId])
 REFERENCES [dbo].[Clients] ([ClientId])
 GO
-ALTER TABLE [dbo].[BankTestAccounts] CHECK CONSTRAINT [FK_BankTestAccounts_Clients]
+ALTER TABLE [dbo].[BankAccounts] CHECK CONSTRAINT [FK_BankAccounts_Clients]
 GO
-ALTER TABLE [dbo].[BankTestAccounts]  WITH CHECK ADD  CONSTRAINT [FK_BankTestAccounts_Services] FOREIGN KEY([ServiceId])
+ALTER TABLE [dbo].[BankAccounts]  WITH CHECK ADD  CONSTRAINT [FK_BankAccounts_Services] FOREIGN KEY([ServiceId])
 REFERENCES [dbo].[Services] ([ServiceId])
 GO
-ALTER TABLE [dbo].[BankTestAccounts] CHECK CONSTRAINT [FK_BankTestAccounts_Services]
+ALTER TABLE [dbo].[BankAccounts] CHECK CONSTRAINT [FK_BankAccounts_Services]
 GO
 ALTER TABLE [dbo].[Clients]  WITH CHECK ADD  CONSTRAINT [FK_Clients_Auth] FOREIGN KEY([AuthId])
 REFERENCES [dbo].[Auth] ([AuthId])
@@ -326,15 +326,15 @@ REFERENCES [dbo].[Workers] ([WorkerId])
 GO
 ALTER TABLE [dbo].[Clients] CHECK CONSTRAINT [FK_Clients_Workers]
 GO
-ALTER TABLE [dbo].[Transactions]  WITH CHECK ADD  CONSTRAINT [FK_Transactions_BankTestAccounts] FOREIGN KEY([SourceAccountId])
-REFERENCES [dbo].[BankTestAccounts] ([BankTestAccountId])
+ALTER TABLE [dbo].[Transactions]  WITH CHECK ADD  CONSTRAINT [FK_Transactions_BankAccounts] FOREIGN KEY([SourceAccountId])
+REFERENCES [dbo].[BankAccounts] ([BankAccountId])
 GO
-ALTER TABLE [dbo].[Transactions] CHECK CONSTRAINT [FK_Transactions_BankTestAccounts]
+ALTER TABLE [dbo].[Transactions] CHECK CONSTRAINT [FK_Transactions_BankAccounts]
 GO
-ALTER TABLE [dbo].[Transactions]  WITH CHECK ADD  CONSTRAINT [FK_Transactions_BankTestAccounts1] FOREIGN KEY([TransferAccountId])
-REFERENCES [dbo].[BankTestAccounts] ([BankTestAccountId])
+ALTER TABLE [dbo].[Transactions]  WITH CHECK ADD  CONSTRAINT [FK_Transactions_BankAccounts1] FOREIGN KEY([TransferAccountId])
+REFERENCES [dbo].[BankAccounts] ([BankAccountId])
 GO
-ALTER TABLE [dbo].[Transactions] CHECK CONSTRAINT [FK_Transactions_BankTestAccounts1]
+ALTER TABLE [dbo].[Transactions] CHECK CONSTRAINT [FK_Transactions_BankAccounts1]
 GO
 ALTER TABLE [dbo].[Transactions]  WITH CHECK ADD  CONSTRAINT [FK_Transactions_Workers] FOREIGN KEY([AuthorisedWorkerId])
 REFERENCES [dbo].[Workers] ([WorkerId])
@@ -404,6 +404,87 @@ set Login = @Login, PasswordHash = CONVERT(varchar(64), HASHBYTES('SHA2_256', @P
 from Clients as cl 
 where cl.AuthId = Auth.AuthId and cl.ClientId = @ClientId
 GO
+/****** Object:  StoredProcedure [dbo].[Add_BankAccount]    Script Date: 2020/11/22 1:30:27 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[Add_BankAccount](@ServiceId AS INT, @Total AS MONEY,
+@ClientId AS INT)
+AS
+	IF (@Total < 0)
+		BEGIN
+			RAISERROR('ERROR: Total can not be negative',15,1);
+			RETURN;
+		END;
+
+	--Getting some additional information
+	DECLARE @Months AS INT
+	SET @Months = (SELECT Months FROM [dbo].Services WHERE ServiceId = @ServiceId)
+	DECLARE @Interest AS FLOAT
+	SET @Interest = (SELECT Interest FROM [dbo].Services WHERE ServiceId = @ServiceId)
+	DECLARE @IsDebit AS BIT
+	SET @IsDebit = (SELECT IsDebit FROM [dbo].Services WHERE ServiceId = @ServiceId)
+	DECLARE @Currency AS VARCHAR(3)
+	SET @Currency = (SELECT Currency FROM [dbo].Services WHERE ServiceId = @ServiceId)
+	DECLARE @CurrentDate AS DATE
+	SET @CurrentDate = CAST( GETDATE() AS DATE );
+
+	IF (@IsDebit = 1) --Adding a Saving Account/Deposit
+	BEGIN
+		INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest)
+		VALUES (@IsDebit, @ServiceId, @Total, @CurrentDate, @Currency, @ClientId, '0');
+		RETURN;
+	END;
+	ELSE --Adding a loan
+	BEGIN
+		DECLARE @IncomePerMonth AS MONEY
+		SET @IncomePerMonth = (SELECT IncomePerMonth FROM [dbo].Clients WHERE ClientId = @ClientId)
+		DECLARE @RequiredIncome AS MONEY
+		SET @RequiredIncome = (SELECT RequiredIncome FROM [dbo].Services WHERE ServiceId = @ServiceId)
+		DECLARE @MonthlyPayment AS MONEY
+		EXECUTE Get_LoanPaymentPerMonth @Total, @Interest, @Months, @MonthlyPayment OUTPUT
+		IF (@IncomePerMonth IS NULL)
+		BEGIN
+			RAISERROR('ERROR: This client did not provide income per month information',15,1);
+			RETURN;
+		END;
+		--Converting to RUB if necessary
+		IF (@Currency != 'RUB')
+		BEGIN
+			DECLARE @Rate AS MONEY
+			SET @Rate = (SELECT Rate FROM [dbo].Exchange WHERE [From] = @Currency AND [To] = 'RUB')
+			SET @RequiredIncome *= @Rate
+			SET @MonthlyPayment *= @Rate
+		END;
+		 --Cheking if Client has enough income per month
+		IF (@IncomePerMonth < @RequiredIncome)
+		BEGIN
+			RAISERROR('ERROR: Income per month of this client is insufficient for this loan',15,1);
+			RETURN;
+		END;
+		--Checking if total is lower than loan cap
+		IF (@MonthlyPayment > @IncomePerMonth)
+		BEGIN
+			RAISERROR('ERROR: The calculated monthly payment is larger than income per month of this client',15,1);
+			RETURN;
+		END;
+			INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest)
+			VALUES (@IsDebit, @ServiceId, @Total, @CurrentDate, @Currency, @ClientId, '0');		
+	END;
+GO
+/****** Object:  StoredProcedure [dbo].[Get_LoanPaymentPerMonth]    Script Date: 2020/11/22 1:30:27 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[Get_LoanPaymentPerMonth] (@Total AS MONEY, @Interest AS FLOAT, @Months AS INT, @MonthlyPayment MONEY OUTPUT)
+AS
+BEGIN
+  SELECT @MonthlyPayment = @Total*(@Interest/1200)*POWER(1+@Interest/1200, @Months)/(POWER(1+@Interest/1200, @Months)-1)
+END
+GO
 /****** Object:  Trigger [dbo].[Account_Transfer]    Script Date: 2020/11/18 19:58:23 ******/
 SET ANSI_NULLS ON
 GO
@@ -418,10 +499,10 @@ BEGIN
 	--In case of an error, rollback will be issued automatically.
 	set xact_abort on
 	begin transaction
-		Update BankTestAccounts set BankTestAccounts.Total += (select Total from inserted)
-		where BankTestAccounts.BankTestAccountId = (select TransferAccountId  from inserted)
-		Update BankTestAccounts set BankTestAccounts.Total -= (select Total from inserted)
-		where BankTestAccounts.BankTestAccountId = (select SourceAccountId  from inserted)
+		Update BankAccounts set BankAccounts.Total += (select Total from inserted)
+		where BankAccounts.BankAccountId = (select TransferAccountId  from inserted)
+		Update BankAccounts set BankAccounts.Total -= (select Total from inserted)
+		where BankAccounts.BankAccountId = (select SourceAccountId  from inserted)
 		Update Transactions set Transactions.Status = 1
 		where Transactions.TransactionId = (select TransactionId from inserted)
 	commit
@@ -445,10 +526,10 @@ BEGIN
 	--In case of an error, rollback will be issued automatically.
 	set xact_abort on
 	begin transaction
-		Update BankTestAccounts set BankTestAccounts.Total -= (select Total from inserted)
-		where BankTestAccounts.BankTestAccountId = (select TransferAccountId  from inserted)
-		Update BankTestAccounts set BankTestAccounts.Total += (select Total from inserted)
-		where BankTestAccounts.BankTestAccountId = (select SourceAccountId  from inserted)
+		Update BankAccounts set BankAccounts.Total -= (select Total from inserted)
+		where BankAccounts.BankAccountId = (select TransferAccountId  from inserted)
+		Update BankAccounts set BankAccounts.Total += (select Total from inserted)
+		where BankAccounts.BankAccountId = (select SourceAccountId  from inserted)
 		Update Transactions set Transactions.Status = -1
 		where Transactions.TransactionId = (select TransactionId from inserted)
 	commit
