@@ -404,21 +404,25 @@ set Login = @Login, PasswordHash = CONVERT(varchar(64), HASHBYTES('SHA2_256', @P
 from Clients as cl 
 where cl.AuthId = Auth.AuthId and cl.ClientId = @ClientId
 GO
-/****** Object:  StoredProcedure [dbo].[Add_BankAccount]    Script Date: 2020/11/22 1:30:27 ******/
+/****** Object:  StoredProcedure [dbo].[Add_BankAccount]    Script Date: 2020/11/22 2:43:45 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE PROCEDURE [dbo].[Add_BankAccount](@ServiceId AS INT, @Total AS MONEY,
-@ClientId AS INT)
+@ClientId AS INT, @AuthorisedWorkerId AS INT)
 AS
 	IF (@Total < 0)
 		BEGIN
 			RAISERROR('ERROR: Total can not be negative',15,1);
 			RETURN;
 		END;
-
+	IF NOT EXISTS (SELECT * FROM Workers WHERE WorkerId = @AuthorisedWorkerId)
+		BEGIN
+			RAISERROR('ERROR: The is no worker with this AuthorisedWorkerId',15,1);
+			RETURN;
+		END;
 	--Getting some additional information
 	DECLARE @Months AS INT
 	SET @Months = (SELECT Months FROM [dbo].Services WHERE ServiceId = @ServiceId)
@@ -434,7 +438,9 @@ AS
 	IF (@IsDebit = 1) --Adding a Saving Account/Deposit
 	BEGIN
 		INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest)
-		VALUES (@IsDebit, @ServiceId, @Total, @CurrentDate, @Currency, @ClientId, '0');
+		VALUES (@IsDebit, @ServiceId, '0', @CurrentDate, @Currency, @ClientId, '0'); --Empty account at first
+		INSERT INTO Transactions(TransferAccountId, Total, Timestamp, Currency, AuthorisedWorkerId, Status)
+		VALUES (SCOPE_IDENTITY(), @Total, CURRENT_TIMESTAMP, @Currency, @AuthorisedWorkerId, '0'); --Trigger will add total
 		RETURN;
 	END;
 	ELSE --Adding a loan
@@ -470,8 +476,13 @@ AS
 			RAISERROR('ERROR: The calculated monthly payment is larger than income per month of this client',15,1);
 			RETURN;
 		END;
-			INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest)
-			VALUES (@IsDebit, @ServiceId, @Total, @CurrentDate, @Currency, @ClientId, '0');		
+			EXECUTE Get_LoanPaymentPerMonth @Total, @Interest, @Months, @MonthlyPayment OUTPUT
+			DECLARE @AccumulatedInterest AS MONEY
+			SET @AccumulatedInterest = @MonthlyPayment*@Months-@Total
+			INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest) --Created account has only interest as debt at first
+			VALUES (@IsDebit, @ServiceId, @AccumulatedInterest, @CurrentDate, @Currency, @ClientId, @AccumulatedInterest);
+			INSERT INTO Transactions(TransferAccountId, Total, Timestamp, Currency, AuthorisedWorkerId, Status)
+			VALUES (SCOPE_IDENTITY(), @Total, CURRENT_TIMESTAMP, @Currency, @AuthorisedWorkerId, '0'); --Trigger will add total to interest
 	END;
 GO
 /****** Object:  StoredProcedure [dbo].[Get_LoanPaymentPerMonth]    Script Date: 2020/11/22 1:30:27 ******/
