@@ -12,10 +12,13 @@ const config = {
       },
       type: "default"
     },
-    server: "miraigajettolab.database.windows.net", 
+    server: "DESKTOP-3LJNSD6",//"miraigajettolab.database.windows.net", 
     options: {
-      database: "BankTest", 
+      port: 32434, //local stuff
+      database: 'BankTest',
+      instancename: 'SQLEXPRESS', //local stuff
       encrypt: true,
+      trustServerCertificate: true, //local stuff
       rowCollectionOnDone: true
     }
 };
