@@ -496,7 +496,7 @@ BEGIN
   SELECT @MonthlyPayment = @Total*(@Interest/1200)*POWER(1+@Interest/1200, @Months)/(POWER(1+@Interest/1200, @Months)-1)
 END
 GO
-/****** Object:  Trigger [dbo].[Account_Transfer]    Script Date: 2020/11/18 19:58:23 ******/
+/****** Object:  Trigger [dbo].[Account_Transfer]    Script Date: 2020/11/24 12:27:49 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -507,12 +507,54 @@ ON [dbo].[Transactions]
 for insert
 AS
 BEGIN
+	IF EXISTS(SELECT Currency FROM inserted where Currency != 'RUB' and Currency != 'JPY' and Currency != 'USD' and Currency != 'EUR' and Currency != 'CNY' and Status = 0)
+	BEGIN
+		Update Transactions set Transactions.Status = -1
+		where Transactions.TransactionId = (select TransactionId from inserted) -- We can't have random currencies
+		RAISERROR('WARNING: INCORRECT TRANSACTION HAS BEEN REJECTED',15,1);
+		return
+	END
+
+	DECLARE @SourceRate AS MONEY 
+	SET @SourceRate = 1
+	DECLARE @TransferRate AS MONEY
+	SET @TransferRate = 1
+	DECLARE @Multiplier AS MONEY -- -1 For Loans, 1 for Deposits 
+	SET @Multiplier = 1
+	DECLARE @SourceCurrency AS VARCHAR(3) --Currency of Source Bank Account
+	SET @SourceCurrency = (select Currency from BankAccounts where BankAccountId = (select SourceAccountId from inserted))
+	DECLARE @TransferCurrency AS VARCHAR(3) --Currency of Transfer Bank Account
+	SET @TransferCurrency = (select Currency from BankAccounts where BankAccountId = (select TransferAccountId from inserted))
+	DECLARE @TransactionCurrency AS VARCHAR(3) --Currency of Transaction
+	SET @TransactionCurrency = (select Currency from inserted)
+
+	IF (@SourceCurrency != @TransactionCurrency)
+	BEGIN
+		SET @SourceRate = (SELECT Rate FROM [dbo].Exchange WHERE [From] = @TransactionCurrency AND [To] = @SourceCurrency)
+	END;
+	IF (@TransferCurrency != @TransactionCurrency)
+	BEGIN
+		SET @TransferCurrency = (SELECT Rate FROM [dbo].Exchange WHERE [From] = @TransactionCurrency AND [To] = @TransferCurrency)
+	END;
+	IF ((select IsDebit from BankAccounts where BankAccountId = (select TransferAccountId from inserted)) = 0)
+	BEGIN
+		SET @Multiplier = -1
+	END;
+
+	IF ((SELECT Total FROM inserted)*@SourceRate > (SELECT Total FROM BankAccounts where BankAccountId = (select SourceAccountId from inserted)))
+	BEGIN
+		Update Transactions set Transactions.Status = -1
+		where Transactions.TransactionId = (select TransactionId from inserted) -- Insufficient funds
+		RAISERROR('WARNING: INCORRECT TRANSACTION HAS BEEN REJECTED',15,1);
+		return
+	END
+
 	--In case of an error, rollback will be issued automatically.
 	set xact_abort on
 	begin transaction
-		Update BankAccounts set BankAccounts.Total += (select Total from inserted)
+		Update BankAccounts set BankAccounts.Total += ((select Total from inserted)*@TransferCurrency*@Multiplier)
 		where BankAccounts.BankAccountId = (select TransferAccountId  from inserted)
-		Update BankAccounts set BankAccounts.Total -= (select Total from inserted)
+		Update BankAccounts set BankAccounts.Total -= ((select Total from inserted)*@SourceRate)
 		where BankAccounts.BankAccountId = (select SourceAccountId  from inserted)
 		Update Transactions set Transactions.Status = 1
 		where Transactions.TransactionId = (select TransactionId from inserted)
@@ -521,7 +563,47 @@ END;
 GO
 ALTER TABLE [dbo].[Transactions] ENABLE TRIGGER [Account_Transfer]
 GO
-/****** Object:  Trigger [dbo].[Reject_Suspicious]    Script Date: 2020/11/18 19:58:23 ******/
+/****** Object:  Trigger [dbo].[Reject_Incorrect]    Script Date: 2020/11/24 12:27:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TRIGGER [dbo].[Reject_Incorrect]
+ON [dbo].[Transactions]
+after update
+AS
+BEGIN
+	DECLARE @IsIncorrect AS BIT
+	SET @IsIncorrect = 0
+	IF EXISTS(SELECT Total FROM Transactions where Total <= 0 and Status = 1)
+	BEGIN
+		SET @IsIncorrect = 1 -- We can only have positive transactions
+	END
+	IF EXISTS(SELECT SourceAccountId FROM Transactions where (SELECT IsDebit FROM BankAccounts where BankAccountId = SourceAccountId) = 0 and Status = 1)
+	BEGIN
+		SET @IsIncorrect = 1 -- Taking money from Loan's Total is a no no
+	END
+
+	IF (@IsIncorrect = 1)
+	BEGIN
+		RAISERROR('WARNING: INCORRECT TRANSACTION HAS BEEN IDENTIFIED',15,1);
+	--In case of an error, rollback will be issued automatically.
+	set xact_abort on
+	begin transaction
+		Update BankAccounts set BankAccounts.Total -= (select Total from inserted)
+		where BankAccounts.BankAccountId = (select TransferAccountId  from inserted)
+		Update BankAccounts set BankAccounts.Total += (select Total from inserted)
+		where BankAccounts.BankAccountId = (select SourceAccountId  from inserted)
+		Update Transactions set Transactions.Status = -1
+		where Transactions.TransactionId = (select TransactionId from inserted)
+	commit
+	RAISERROR('ATTENTION: INCORRECT TRANSACTION HAS BEEN REVERSED',15,1);
+	END;
+END;
+GO
+ALTER TABLE [dbo].[Transactions] ENABLE TRIGGER [Reject_Incorrect]
+GO
+/****** Object:  Trigger [dbo].[Reject_Suspicious]    Script Date: 2020/11/24 12:27:50 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -531,7 +613,42 @@ ON [dbo].[Transactions]
 after update
 AS
 BEGIN
-	IF EXISTS(SELECT Total FROM Transactions where Total > 600000 and AuthorisedWorkerId is null and Status = 1)
+	DECLARE @IsSus AS BIT
+	SET @IsSus = 0
+	DECLARE @Threshold AS MONEY --RUB
+	SET @Threshold = 600000
+	IF EXISTS(SELECT Total FROM Transactions WHERE Currency = 'RUB' 
+		AND Total > @Threshold and AuthorisedWorkerId is null and Status = 1)
+	BEGIN
+		SET @IsSus = 1
+	END;
+	IF EXISTS (SELECT Total FROM Transactions WHERE Currency = 'JPY' 
+		AND Total*(SELECT Rate FROM [dbo].Exchange WHERE [From] = 'JPY' AND [To] = 'RUB') > @Threshold 
+		AND AuthorisedWorkerId IS NULL AND Status = 1)
+	BEGIN
+		SET @IsSus = 1
+	END;
+	IF EXISTS (SELECT Total FROM Transactions WHERE Currency = 'USD' 
+		AND Total*(SELECT Rate FROM [dbo].Exchange WHERE [From] = 'USD' AND [To] = 'RUB') > @Threshold 
+		AND AuthorisedWorkerId IS NULL AND Status = 1)
+	BEGIN
+		SET @IsSus = 1
+	END;
+	IF EXISTS (SELECT Total FROM Transactions WHERE Currency = 'EUR' 
+		AND Total*(SELECT Rate FROM [dbo].Exchange WHERE [From] = 'EUR' AND [To] = 'RUB') > @Threshold 
+		AND AuthorisedWorkerId IS NULL AND Status = 1)
+	BEGIN
+		SET @IsSus = 1
+	END;
+	IF EXISTS (SELECT Total FROM Transactions WHERE Currency = 'CNY' 
+		AND Total*(SELECT Rate FROM [dbo].Exchange WHERE [From] = 'CNY' AND [To] = 'RUB') > @Threshold 
+		AND AuthorisedWorkerId IS NULL AND Status = 1)
+	BEGIN
+		SET @IsSus = 1
+	END;
+
+
+	IF (@IsSus = 1)
 	BEGIN
 		RAISERROR('WARNING: SUSCICIOUS TRANSACTION HAS BEEN IDENTIFIED',15,1);
 	--In case of an error, rollback will be issued automatically.
