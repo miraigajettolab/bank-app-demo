@@ -123,6 +123,12 @@ function FreeQuery(sqlQuery, req, res) {
   connection.execSql(request);
 }
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+  res.header("Access-Control-Allow-Headers", "*");
+  next();
+});
+
 /* GET result of some SQL query */
 app.get('/query', function (req, res) {
   let query = `SELECT TOP (${req.query.count}) * FROM [dbo].[${req.query.table}]` // SQL query
