@@ -15,7 +15,6 @@ class App extends React.Component {
     console.log(`Making a GET request to ${handle}`)
     
     let headerBuilder = {
-      'Access-Control-Allow-Headers': '*',
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     }
@@ -31,7 +30,7 @@ class App extends React.Component {
 
   componentDidMount() {
     //this.GetIt("https://bank-api.azurewebsites.net/query?table=Exchange&count=20", true)
-    this.GetIt("https://bank-api.azurewebsites.net/complex/3", true)
+    this.GetIt("http://localhost:5000/exchange", true)
 	}
 
   render() {
