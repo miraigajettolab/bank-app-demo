@@ -196,7 +196,7 @@ GO
 CREATE TABLE [dbo].[Transactions](
 	[TransactionId] [int] IDENTITY(1,1) NOT NULL,
 	[SourceAccountId] [int] NULL,
-	[TransferAccountId] [int] NOT NULL,
+	[TransferAccountId] [int] NULL,
 	[Total] [money] NOT NULL,
 	[Timestamp] [datetime] NOT NULL,
 	[Currency] [varchar](3) NOT NULL,
@@ -452,9 +452,9 @@ AS
 	IF (@IsDebit = 1) --Adding a Saving Account/Deposit
 	BEGIN
 		INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest)
-		VALUES (@IsDebit, @ServiceId, '0', @CurrentDate, @Currency, @ClientId, '0'); --Empty account at first
+		VALUES (@IsDebit, @ServiceId, @Total, @CurrentDate, @Currency, @ClientId, '0');
 		INSERT INTO Transactions(TransferAccountId, Total, Timestamp, Currency, AuthorisedWorkerId, Status)
-		VALUES (SCOPE_IDENTITY(), @Total, CURRENT_TIMESTAMP, @Currency, @AuthorisedWorkerId, '0'); --Trigger will add total
+		VALUES (SCOPE_IDENTITY(), @Total, CURRENT_TIMESTAMP, @Currency, @AuthorisedWorkerId, '1');
 		RETURN;
 	END;
 	ELSE --Adding a loan
@@ -493,10 +493,10 @@ AS
 			EXECUTE Get_LoanPaymentPerMonth @Total, @Interest, @Months, @MonthlyPayment OUTPUT
 			DECLARE @AccumulatedInterest AS MONEY
 			SET @AccumulatedInterest = @MonthlyPayment*@Months-@Total
-			INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest) --Created account has only interest as debt at first
-			VALUES (@IsDebit, @ServiceId, @AccumulatedInterest, @CurrentDate, @Currency, @ClientId, @AccumulatedInterest);
-			INSERT INTO Transactions(TransferAccountId, Total, Timestamp, Currency, AuthorisedWorkerId, Status)
-			VALUES (SCOPE_IDENTITY(), @Total, CURRENT_TIMESTAMP, @Currency, @AuthorisedWorkerId, '0'); --Trigger will add total to interest
+			INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest)
+			VALUES (@IsDebit, @ServiceId, @AccumulatedInterest+@Total, @CurrentDate, @Currency, @ClientId, @AccumulatedInterest);
+			INSERT INTO Transactions(SourceAccountId, Total, Timestamp, Currency, AuthorisedWorkerId, Status)
+			VALUES (SCOPE_IDENTITY(), @Total, CURRENT_TIMESTAMP, @Currency, @AuthorisedWorkerId, '1'); 
 	END;
 GO
 /****** Object:  StoredProcedure [dbo].[Get_LoanPaymentPerMonth]    Script Date: 2020/11/22 1:30:27 ******/
@@ -521,6 +521,10 @@ ON [dbo].[Transactions]
 for insert
 AS
 BEGIN
+	IF((select Status from inserted) = 1)
+	BEGIN
+		return
+	END
 	IF EXISTS(SELECT Currency FROM inserted where Currency != 'RUB' and Currency != 'JPY' and Currency != 'USD' and Currency != 'EUR' and Currency != 'CNY' and Status = 0)
 	BEGIN
 		Update Transactions set Transactions.Status = -1
@@ -548,7 +552,7 @@ BEGIN
 	END;
 	IF (@TransferCurrency != @TransactionCurrency)
 	BEGIN
-		SET @TransferCurrency = (SELECT Rate FROM [dbo].Exchange WHERE [From] = @TransactionCurrency AND [To] = @TransferCurrency)
+		SET @TransferRate = (SELECT Rate FROM [dbo].Exchange WHERE [From] = @TransactionCurrency AND [To] = @TransferCurrency)
 	END;
 	IF ((select IsDebit from BankAccounts where BankAccountId = (select TransferAccountId from inserted)) = 0)
 	BEGIN
@@ -566,7 +570,7 @@ BEGIN
 	--In case of an error, rollback will be issued automatically.
 	set xact_abort on
 	begin transaction
-		Update BankAccounts set BankAccounts.Total += ((select Total from inserted)*@TransferCurrency*@Multiplier)
+		Update BankAccounts set BankAccounts.Total += ((select Total from inserted)*@TransferRate*@Multiplier)
 		where BankAccounts.BankAccountId = (select TransferAccountId  from inserted)
 		Update BankAccounts set BankAccounts.Total -= ((select Total from inserted)*@SourceRate)
 		where BankAccounts.BankAccountId = (select SourceAccountId  from inserted)
