@@ -131,7 +131,7 @@ app.use(function(req, res, next) {
 
 /* GET result of some SQL query */
 app.get('/query', function (req, res) {
-  let query = `SELECT TOP (${req.query.count}) * FROM [dbo].[${req.query.table}]` // SQL query
+  let query = `${req.query.query}` // SQL query
   AdminQuery(query, req, res)
 });
 
@@ -145,7 +145,7 @@ app.get('/complex/1', function (req, res) {
   FROM Transactions
   JOIN BankAccounts ON BankAccounts.BankAccountId = Transactions.TransferAccountId
   JOIN Clients ON BankAccounts.ClientId = Clients.ClientId
-  WHERE Transactions.Timestamp >= '${req.query.timestampStart}' and Transactions.Timestamp <= '${req.query.timestampEnd}'
+  WHERE Transactions.Timestamp >= ${req.query.timestampStart} and Transactions.Timestamp <= ${req.query.timestampEnd}
   ) AS tmp)` // SQL query
   AdminQuery(query, req, res)
 });
@@ -166,8 +166,113 @@ app.get('/complex/3', function (req, res) {
 app.get('/complex/4', function (req, res) {
   let query = `SELECT TOP(10) Transactions.AuthorisedWorkerId,  Workers.FullName, Count(*) AS 'Count' FROM Transactions
   JOIN Workers ON Transactions.AuthorisedWorkerId = Workers.WorkerId
-  WHERE Transactions.Timestamp >= '${req.query.timestampStart}' and Transactions.Timestamp <= '${req.query.timestampEnd}'
-  GROUP BY AuthorisedWorkerId, FullName` // SQL query
+  WHERE Transactions.Timestamp >= ${req.query.timestampStart} and Transactions.Timestamp <= ${req.query.timestampEnd}
+  GROUP BY AuthorisedWorkerId, FullName
+  ORDER BY 'Count' desc` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/complex/5', function (req, res) {
+  let query = `SELECT BankAccounts.Currency, SUM(BankAccounts.AccumulatedInterest) AS 'Sum' FROM BankAccounts
+  WHERE BankAccounts.IsDebit = 'False' and Currency = 'RUB'
+  GROUP BY BankAccounts.Currency
+  UNION
+  SELECT BankAccounts.Currency, SUM(BankAccounts.AccumulatedInterest) FROM BankAccounts
+  WHERE BankAccounts.IsDebit = 'False' and Currency = 'USD'
+  GROUP BY BankAccounts.Currency
+  UNION
+  SELECT BankAccounts.Currency, SUM(BankAccounts.AccumulatedInterest) FROM BankAccounts
+  WHERE BankAccounts.IsDebit = 'False' and Currency = 'EUR'
+  GROUP BY BankAccounts.Currency
+  UNION
+  SELECT BankAccounts.Currency, SUM(BankAccounts.AccumulatedInterest) FROM BankAccounts
+  WHERE BankAccounts.IsDebit = 'False' and Currency = 'JPY'
+  GROUP BY BankAccounts.Currency
+  UNION
+  SELECT BankAccounts.Currency, SUM(BankAccounts.AccumulatedInterest) FROM BankAccounts
+  WHERE BankAccounts.IsDebit = 'False' and Currency = 'CNY'
+  GROUP BY BankAccounts.Currency` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/complex/6', function (req, res) {
+  let query = `SELECT BankAccounts.Currency, SUM(BankAccounts.AccumulatedInterest) AS 'Sum'  FROM BankAccounts
+  WHERE BankAccounts.IsDebit = 'True' and Currency = 'RUB'
+  GROUP BY BankAccounts.Currency
+  UNION
+  SELECT BankAccounts.Currency, SUM(BankAccounts.AccumulatedInterest) FROM BankAccounts
+  WHERE BankAccounts.IsDebit = 'True' and Currency = 'USD'
+  GROUP BY BankAccounts.Currency
+  UNION
+  SELECT BankAccounts.Currency, SUM(BankAccounts.AccumulatedInterest) FROM BankAccounts
+  WHERE BankAccounts.IsDebit = 'True' and Currency = 'EUR'
+  GROUP BY BankAccounts.Currency
+  UNION
+  SELECT BankAccounts.Currency, SUM(BankAccounts.AccumulatedInterest) FROM BankAccounts
+  WHERE BankAccounts.IsDebit = 'True' and Currency = 'JPY'
+  GROUP BY BankAccounts.Currency
+  UNION
+  SELECT BankAccounts.Currency, SUM(BankAccounts.AccumulatedInterest) FROM BankAccounts
+  WHERE BankAccounts.IsDebit = 'True' and Currency = 'CNY'
+  GROUP BY BankAccounts.Currency` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/complex/7', function (req, res) {
+  let query = `SELECT tmp.Count, tmp.ServiceId, Services.Interest, Services.IsDebit, Services.Months, Services.RequiredIncome, Services.Currency
+  FROM (
+  SELECT BankAccounts.ServiceId , COUNT(*) as 'Count'
+  FROM BankAccounts
+  GROUP BY BankAccounts.ServiceId
+  ) AS tmp 
+  JOIN Services ON Services.ServiceId = tmp.ServiceId
+  ORDER BY tmp.Count DESC` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/complex/8', function (req, res) {
+  let query = `SELECT Transactions.Currency, SUM(Transactions.Total) AS 'Sum' FROM Transactions
+  WHERE Transactions.Currency = 'RUB' AND Transactions.Status = 1 AND 
+  Transactions.Timestamp >= ${req.query.timestampStart} AND Transactions.Timestamp <= ${req.query.timestampEnd}
+  GROUP BY Transactions.Currency` // SQL query
+  AdminQuery(query, req, res)
+});
+
+//9 and 10 are for operator and client
+
+app.get('/complex/11', function (req, res) {
+  let query = `SELECT Clients.FullName, Clients.ClientID, SUM(BankAccounts.Total) as 'Sum' from BankAccounts
+  JOIN Clients on BankAccounts.ClientId = Clients.ClientId
+  WHERE BankAccounts.IsDebit = 'True' and BankAccounts.Currency = ${req.query.currency}
+  GROUP BY Clients.FullName, Clients.ClientID
+  ORDER BY 'Sum' DESC` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/complex/12', function (req, res) {
+  let query = `SELECT Clients.FullName, Clients.ClientID, SUM(BankAccounts.Total) as 'Sum' from BankAccounts
+  JOIN Clients on BankAccounts.ClientId = Clients.ClientId
+  WHERE BankAccounts.IsDebit = 'False' and BankAccounts.Currency = ${req.query.currency}
+  GROUP BY Clients.FullName, Clients.ClientID
+  ORDER BY 'Sum' DESC` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/complex/13', function (req, res) {
+  let query = `SELECT Clients.FullName, Clients.ClientID, SUM(BankAccounts.AccumulatedInterest) as 'Sum' from BankAccounts
+  JOIN Clients on BankAccounts.ClientId = Clients.ClientId
+  WHERE BankAccounts.IsDebit = 'True' and BankAccounts.Currency = ${req.query.currency}
+  GROUP BY Clients.FullName, Clients.ClientID
+  ORDER BY 'Sum' DESC` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/complex/14', function (req, res) {
+  let query = `SELECT Clients.FullName, Clients.ClientID, SUM(BankAccounts.AccumulatedInterest) as 'Sum' from BankAccounts
+  JOIN Clients on BankAccounts.ClientId = Clients.ClientId
+  WHERE BankAccounts.IsDebit = 'False' and BankAccounts.Currency = ${req.query.currency}
+  GROUP BY Clients.FullName, Clients.ClientID
+  ORDER BY 'Sum' DESC` // SQL query
   AdminQuery(query, req, res)
 });
 
@@ -180,12 +285,12 @@ app.get('/complex/', function (req, res) {
 
 /* GET result of some SQL query */
 app.get('/exchange', function (req, res) {
-  let query = `SELECT TOP (1000) * FROM [dbo].[Exchange]` // SQL query
+  let query = `SELECT * FROM [dbo].[Exchange]` // SQL query
   FreeQuery(query, req, res)
 });
 
 app.get('/services', function (req, res) {
-  let query = `SELECT TOP (1000) * FROM [dbo].[Services]` // SQL query
+  let query = `SELECT * FROM [dbo].[Services]` // SQL query
   FreeQuery(query, req, res)
 });
 
