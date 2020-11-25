@@ -1,44 +1,43 @@
 import './App.css';
 import React from 'react';
 
+import Login from './Login'
+
+
+
 class App extends React.Component {
   constructor(props) {
 		super(props);
 		this.state = {
-      GetResponse : {},
-      token: "baeb8c102e7004b1fd8e44d7659bb0bc991e9db9235ca10a77405f2bdfcec78d"
+      token : null,
+      login: "",
+      password: "",
+      accType: "admin",
+      serverURL: "http://localhost:5000"
     };
-    this.GetIt = this.GetIt.bind(this)
+    this.changeHandler = this.changeHandler.bind(this)
+    this.storeToken = this.storeToken.bind(this)
   }
 
-  GetIt(handle, addToken = false) {
-    console.log(`Making a GET request to ${handle}`)
-    
-    let headerBuilder = {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    }
-    if (addToken) {
-      headerBuilder['Auth-Token'] = this.state.token
-    }
-    console.log(headerBuilder)
-    fetch(handle, {
-      method: 'GET',
-      headers: headerBuilder
-    }).then(response => response.json()).then(data => this.setState({"GetResponse":data}))
+  changeHandler(event) {
+
+    const name = event.target.name
+    const value = event.target.value
+    const type = event.target.type
+    const checked = event.target.checked
+    type === "checkbox" ? this.setState({[name]:checked}) : this.setState({[name]:value})
   }
+
+  storeToken(token) { //used by Login.js
+    this.setState({"token":token})
+  }
+
 
   componentDidMount() {
-    //this.GetIt("https://bank-api.azurewebsites.net/query?table=Exchange&count=20", true)
-    this.GetIt("http://localhost:5000/exchange", true)
-	}
+  }
 
   render() {
-    return (
-      <div className="App">
-        <p>{JSON.stringify(this.state.GetResponse)}</p>
-      </div>
-    );
+  return (this.state.token == null)? <Login changeHandler={this.changeHandler} login={this.state.login} password={this.state.password} accType={this.state.accType} serverURL={this.state.serverURL} storeToken={this.storeToken}/>:<h1>{this.state.token}</h1>
   }
 }
 
