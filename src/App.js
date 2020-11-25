@@ -2,8 +2,7 @@ import './App.css';
 import React from 'react';
 
 import Login from './Login'
-
-
+import Snack from './util/Snack'
 
 class App extends React.Component {
   constructor(props) {
@@ -37,7 +36,17 @@ class App extends React.Component {
   }
 
   render() {
-  return (this.state.token == null)? <Login changeHandler={this.changeHandler} login={this.state.login} password={this.state.password} accType={this.state.accType} serverURL={this.state.serverURL} storeToken={this.storeToken}/>:<h1>{this.state.token}</h1>
+  return <div>
+    {(this.state.token == null) 
+    ? <Login 
+        changeHandler={this.changeHandler} 
+        login={this.state.login} 
+        password={this.state.password} 
+        accType={this.state.accType} 
+        serverURL={this.state.serverURL} 
+        storeToken={this.storeToken}/> 
+    : <Snack msg = {`Добро пожаловать, ${this.state.login}`}/> }
+    </div>
   }
 }
 
