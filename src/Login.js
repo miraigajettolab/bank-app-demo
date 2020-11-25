@@ -23,6 +23,7 @@ class Login extends React.Component {
     };
     this.processSingIn = this.processSingIn.bind(this)
     this.processSingUp = this.processSingUp.bind(this)
+    this.processForgot = this.processForgot.bind(this)
     this.checkPasswordHash = this.checkPasswordHash.bind(this)
   }
 
@@ -120,6 +121,26 @@ class Login extends React.Component {
   }
 
   processSingUp(){
+    this.setState({ // reseting alerts
+        showAlert:false, 
+        alertMsg: "", 
+        alertSeverity: ""
+    })
+    if ((this.props.accType == "client")){
+        this.setState({
+            showAlert:true, 
+            alertMsg: "ща", // do something 
+            alertSeverity: "info"
+        })
+    }
+  }
+
+  processForgot(){
+        this.setState({ // reseting alerts
+        showAlert:false, 
+        alertMsg: "", 
+        alertSeverity: ""
+    })
     if (this.props.accType == "admin"){
         this.setState({
             showAlert:true, 
@@ -183,18 +204,26 @@ class Login extends React.Component {
             value = {this.props.password}
             onChange = {this.props.changeHandler}
           />
-          <div style = {{display: "flex", justifyContent: "space-between"}}>
           <Button 
-            style = {{width: "50%", marginRight: "5px"}}
+            style = {{width: "100%", marginBottom: "10px"}}
             variant="contained"
             color="primary"
             onClick={this.processSingIn}>
               Войти
           </Button>
+          <div style = {{display: "flex", justifyContent: "space-between"}}>
+          <Button
+            style = {{width: "50%", marginRight: "5px"}} 
+            variant="contained" 
+            color="secondary" 
+            onClick={this.processForgot}>
+              Забыл пароль
+          </Button>
           <Button
             style = {{width: "50%", marginLeft: "5px"}} 
             variant="contained" 
             color="secondary" 
+            disabled = {(this.props.accType == "client") ? false: true} 
             onClick={this.processSingUp}>
               Зарегистрироваться
           </Button>
