@@ -23,6 +23,7 @@ class Login extends React.Component {
     };
     this.processSingIn = this.processSingIn.bind(this)
     this.processSingUp = this.processSingUp.bind(this)
+    this.checkPasswordHash = this.checkPasswordHash.bind(this)
   }
 
   GetIt(handle, addToken = false) {
@@ -45,7 +46,12 @@ class Login extends React.Component {
   }
 
   processSingIn(){
-    if (this.props.accType == "admin"){
+    this.setState({ // reseting alerts
+        showAlert:false, 
+        alertMsg: "", 
+        alertSeverity: ""
+    })
+    if (this.props.accType == "admin"){ //we have to make a token for the admin in a little bit of a different way
         fetch(this.props.serverURL + "/get-salt", {
             method: 'GET',
             headers: {
@@ -55,7 +61,7 @@ class Login extends React.Component {
         })
         .then(response => response.json())
         .then(data => crypto.createHash('sha256').update(this.props.login+data.salt+this.props.password).digest('hex'))
-        .then(h => fetch(this.props.serverURL + "/complex/1", { //just trying some random method
+        .then(h => fetch(this.props.serverURL + "/complex/1", { //just trying some random method to see if we're logged in
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -66,15 +72,15 @@ class Login extends React.Component {
         .then(response => response.json())
         .then(data => (data.error == "Authentication failed")
             ? this.setState({
-                showAlert:true, 
+                showAlert:true,  // well if we got this error then the check failed, so we set the alert and do nothing
                 alertMsg: "Ошибка авторизации", 
                 alertSeverity: "error"
             })
-            : this.props.storeToken(h)
+            : this.props.storeToken(h) // but if it worked we're logged in
         ))
     }
-    else {
-        fetch(this.props.serverURL + "/check-login", {
+    else { //if the accType is client or worker
+        fetch(this.props.serverURL + `/check-login?login=${this.props.login}&isClient=${this.props.accType == "client" ? true : false}`, { //checking login for clients and workers
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -82,13 +88,59 @@ class Login extends React.Component {
             }
         })
         .then(response => response.json())
-        .then(data => crypto.createHash('sha256').update(this.props.login+data.salt+this.props.password).digest('hex'))
-
+        .then(data => (data.count != 1) 
+            ? this.setState({ //if there are 0 (or god forbid more than 1) results then set error alert and do nothing
+                showAlert:true, 
+                alertMsg: "Неверный логин", 
+                alertSeverity: "error"
+            })
+            : //if there is 1 than the login is approved and we could proceed to checking the password
+             this.checkPasswordHash(crypto.createHash('sha256').update(this.props.password+ data.data[0].AuthId).digest('hex')) 
+        )
     }
   }
 
+  checkPasswordHash(h){ //checking password hash for clients and workers
+    fetch(this.props.serverURL + `/check-auth?login=${this.props.login}&token=${h}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => (data.count != 1) //if there are 0 (or god forbid more than 1) results then set error alert and do nothing
+        ? this.setState({
+            showAlert:true, 
+            alertMsg: "Неверный пароль", 
+            alertSeverity: "error"
+        })
+        : this.props.storeToken(h) //if there is 1 than the token is approved and we are logged in
+    )
+  }
+
   processSingUp(){
-    console.log("Не лезь")
+    if (this.props.accType == "admin"){
+        this.setState({
+            showAlert:true, 
+            alertMsg: "Обратитесь к системному администратору", 
+            alertSeverity: "info"
+        })
+    }
+    else if ((this.props.accType == "worker")){
+        this.setState({
+            showAlert:true, 
+            alertMsg: "Обратитесь в администрацию", 
+            alertSeverity: "info"
+        })
+    }
+    else if ((this.props.accType == "client")){
+        this.setState({
+            showAlert:true, 
+            alertMsg: "ща", // do something 
+            alertSeverity: "info"
+        })
+    }
   }
 
   render() {
