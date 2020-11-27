@@ -52,7 +52,17 @@ class Login extends React.Component {
         alertMsg: "", 
         alertSeverity: ""
     })
-    if (this.props.accType == "admin"){ //we have to make a token for the admin in a little bit of a different way
+
+    if(this.props.login.length === 0) {
+        this.setState({
+            showAlert:true, 
+            alertMsg: "Введите логин", 
+            alertSeverity: "warning"
+        })
+        return;
+    }
+
+    if (this.props.accType === "admin"){ //we have to make a token for the admin in a little bit of a different way
         fetch(this.props.serverURL + "/get-salt", {
             method: 'GET',
             headers: {
@@ -71,7 +81,7 @@ class Login extends React.Component {
             }
         })
         .then(response => response.json())
-        .then(data => (data.error == "Authentication failed")
+        .then(data => (data.error === "Authentication failed")
             ? this.setState({
                 showAlert:true,  // well if we got this error then the check failed, so we set the alert and do nothing
                 alertMsg: "Ошибка авторизации", 
@@ -81,7 +91,7 @@ class Login extends React.Component {
         ))
     }
     else { //if the accType is client or worker
-        fetch(this.props.serverURL + `/check-login?login=${this.props.login}&isClient=${this.props.accType == "client" ? true : false}`, { //checking login for clients and workers
+        fetch(this.props.serverURL + `/check-login?login=${this.props.login}&isClient=${this.props.accType === "client" ? true : false}`, { //checking login for clients and workers
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -89,7 +99,7 @@ class Login extends React.Component {
             }
         })
         .then(response => response.json())
-        .then(data => (data.count != 1) 
+        .then(data => (data.count !== 1) 
             ? this.setState({ //if there are 0 (or god forbid more than 1) results then set error alert and do nothing
                 showAlert:true, 
                 alertMsg: "Неверный логин", 
@@ -102,6 +112,14 @@ class Login extends React.Component {
   }
 
   checkPasswordHash(h){ //checking password hash for clients and workers
+    if(this.props.password.length === 0) {
+        this.setState({
+            showAlert:true, 
+            alertMsg: "Введите пароль", 
+            alertSeverity: "warning"
+        })
+        return;
+    }
     fetch(this.props.serverURL + `/check-auth?login=${this.props.login}&token=${h}`, {
         method: 'GET',
         headers: {
@@ -110,7 +128,7 @@ class Login extends React.Component {
         }
     })
     .then(response => response.json())
-    .then(data => (data.count != 1) //if there are 0 (or god forbid more than 1) results then set error alert and do nothing
+    .then(data => (data.count !== 1) //if there are 0 (or god forbid more than 1) results then set error alert and do nothing
         ? this.setState({
             showAlert:true, 
             alertMsg: "Неверный пароль", 
@@ -126,7 +144,7 @@ class Login extends React.Component {
         alertMsg: "", 
         alertSeverity: ""
     })
-    if ((this.props.accType == "client")){
+    if ((this.props.accType === "client")){
         this.setState({
             showAlert:true, 
             alertMsg: "ща", // do something 
@@ -141,21 +159,21 @@ class Login extends React.Component {
         alertMsg: "", 
         alertSeverity: ""
     })
-    if (this.props.accType == "admin"){
+    if (this.props.accType === "admin"){
         this.setState({
             showAlert:true, 
             alertMsg: "Обратитесь к системному администратору", 
             alertSeverity: "info"
         })
     }
-    else if ((this.props.accType == "worker")){
+    else if ((this.props.accType === "worker")){
         this.setState({
             showAlert:true, 
             alertMsg: "Обратитесь в администрацию", 
             alertSeverity: "info"
         })
     }
-    else if ((this.props.accType == "client")){
+    else if ((this.props.accType === "client")){
         this.setState({
             showAlert:true, 
             alertMsg: "ща", // do something 
@@ -199,6 +217,7 @@ class Login extends React.Component {
           <TextField 
             style={{marginBottom: "10px"}}
             label="Пароль"
+            //type="password"
             variant="outlined"
             name = "password"
             value = {this.props.password}
@@ -223,7 +242,7 @@ class Login extends React.Component {
             style = {{width: "50%", marginLeft: "5px"}} 
             variant="contained" 
             color="secondary" 
-            disabled = {(this.props.accType == "client") ? false: true} 
+            disabled = {(this.props.accType === "client") ? false: true} 
             onClick={this.processSingUp}>
               Зарегистрироваться
           </Button>

@@ -3,6 +3,9 @@ import React from 'react';
 
 import Login from './Login'
 import Snack from './util/Snack'
+import Admin from './admin/Admin'
+import Worker from './worker/Worker'
+import Client from './client/Client'
 
 class App extends React.Component {
   constructor(props) {
@@ -36,7 +39,7 @@ class App extends React.Component {
   }
 
   render() {
-  return <div>
+  return  <div>
     {(this.state.token == null) 
     ? <Login 
         changeHandler={this.changeHandler} 
@@ -45,8 +48,27 @@ class App extends React.Component {
         accType={this.state.accType} 
         serverURL={this.state.serverURL} 
         storeToken={this.storeToken}/> 
-    : <Snack msg = {`Добро пожаловать, ${this.state.login}`}/> }
-    </div>
+    :
+      <div>
+        <Snack msg = {`Добро пожаловать, ${this.state.login}`}/> 
+        {(this.state.accType === "admin") 
+        ? <Admin
+            serverURL = {this.state.serverURL}
+            token = {this.state.token}
+          /> 
+        : (this.state.accType === "worker") 
+          ? <Worker
+              serverURL = {this.state.serverURL}
+              token = {this.state.token}
+            /> 
+          : <Client
+              serverURL = {this.state.serverURL}
+              token = {this.state.token}
+            />
+        }
+      </div>
+    }
+  </div>
   }
 }
 
