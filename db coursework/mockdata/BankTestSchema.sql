@@ -149,6 +149,7 @@ CREATE TABLE [dbo].[Services](
 	[Currency] [varchar](3) NOT NULL,
 	[RequiredIncome] [money] NULL,
 	[Description] [varchar](max) NOT NULL,
+	[IsDisabled] [bit] NOT NULL,
  CONSTRAINT [PK_Services] PRIMARY KEY CLUSTERED 
 (
 	[ServiceId] ASC
@@ -162,26 +163,26 @@ SET QUOTED_IDENTIFIER ON
 GO
 /****** ADD BASIC SERVICES DATA ******/
 SET IDENTITY_INSERT [dbo].[Services] ON 
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (1, 12, 8.4, 1, NULL, NULL, N'RUB', 0.0000, N'High Interest Deposit')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (2, 60, 0.01, 1, NULL, NULL, N'RUB', 0.0000, N'Long Term Flexible Deposit')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (3, 12, 1.5, 1, NULL, NULL, N'JPY', 0.0000, N'High Interest Deposit')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (4, 60, 0.01, 1, NULL, NULL, N'JPY', 0.0000, N'Long Term Flexible Deposit')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (5, 12, 2.25, 1, NULL, NULL, N'USD', 0.0000, N'High Interest Deposit')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (6, 60, 0.01, 1, NULL, NULL, N'USD', 0.0000, N'Long Term Flexible Deposit')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (7, 12, 3.1, 1, NULL, NULL, N'EUR', 0.0000, N'High Interest Deposit')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (8, 60, 0.01, 1, NULL, NULL, N'EUR', 0.0000, N'Long Term Flexible Deposit')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (9, 12, 4.12, 1, NULL, NULL, N'CNY', 0.0000, N'High Interest Deposit')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (10, 60, 0.01, 1, NULL, NULL, N'CNY', 0.0000, N'Long Term Flexible Deposit')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (11, 60, 10.2, 0, NULL, NULL, N'RUB', 80000.0000, N'Regular Loan')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (12, 240, 9.66, 0, NULL, NULL, N'RUB', 50000.0000, N'Mortgage')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (13, 60, 2.9, 0, NULL, NULL, N'JPY', 200000.0000, N'Regular Loan')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (14, 240, 2.47, 0, NULL, NULL, N'JPY', 120000.0000, N'Mortgage')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (15, 60, 5.2, 0, NULL, NULL, N'USD', 1600.0000, N'Regular Loan')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (16, 240, 2.88, 0, NULL, NULL, N'USD', 900.0000, N'Mortgage')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (17, 60, 4.5, 0, NULL, NULL, N'EUR', 1250.0000, N'Regular Loan')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (18, 240, 1.76, 0, NULL, NULL, N'EUR', 760.0000, N'Mortgage')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (19, 60, 4.35, 0, NULL, NULL, N'CNY', 8000.0000, N'Regular Loan')
-INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description]) VALUES (20, 240, 4.65, 0, NULL, NULL, N'CNY', 4575.0000, N'Mortgage')
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (1, 12, 8.4, 1, NULL, NULL, N'RUB', 0.0000, N'High Interest Deposit', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (2, 60, 0.01, 1, NULL, NULL, N'RUB', 0.0000, N'Long Term Flexible Deposit', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (3, 12, 1.5, 1, NULL, NULL, N'JPY', 0.0000, N'High Interest Deposit', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (4, 60, 0.01, 1, NULL, NULL, N'JPY', 0.0000, N'Long Term Flexible Deposit', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (5, 12, 2.25, 1, NULL, NULL, N'USD', 0.0000, N'High Interest Deposit', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (6, 60, 0.01, 1, NULL, NULL, N'USD', 0.0000, N'Long Term Flexible Deposit', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (7, 12, 3.1, 1, NULL, NULL, N'EUR', 0.0000, N'High Interest Deposit', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (8, 60, 0.01, 1, NULL, NULL, N'EUR', 0.0000, N'Long Term Flexible Deposit', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (9, 12, 4.12, 1, NULL, NULL, N'CNY', 0.0000, N'High Interest Deposit', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (10, 60, 0.01, 1, NULL, NULL, N'CNY', 0.0000, N'Long Term Flexible Deposit', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (11, 60, 10.2, 0, NULL, NULL, N'RUB', 80000.0000, N'Regular Loan', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (12, 240, 9.66, 0, NULL, NULL, N'RUB', 50000.0000, N'Mortgage', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (13, 60, 2.9, 0, NULL, NULL, N'JPY', 200000.0000, N'Regular Loan', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (14, 240, 2.47, 0, NULL, NULL, N'JPY', 120000.0000, N'Mortgage', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (15, 60, 5.2, 0, NULL, NULL, N'USD', 1600.0000, N'Regular Loan', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (16, 240, 2.88, 0, NULL, NULL, N'USD', 900.0000, N'Mortgage', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (17, 60, 4.5, 0, NULL, NULL, N'EUR', 1250.0000, N'Regular Loan', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (18, 240, 1.76, 0, NULL, NULL, N'EUR', 760.0000, N'Mortgage', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (19, 60, 4.35, 0, NULL, NULL, N'CNY', 8000.0000, N'Regular Loan', 0)
+INSERT [dbo].[Services] ([ServiceId], [Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) VALUES (20, 240, 4.65, 0, NULL, NULL, N'CNY', 4575.0000, N'Mortgage', 0)
 SET IDENTITY_INSERT [dbo].[Services] OFF
 GO
 --3. Условия кредитов и вкладов
@@ -427,6 +428,11 @@ GO
 CREATE PROCEDURE [dbo].[Add_BankAccount](@ServiceId AS INT, @Total AS MONEY,
 @ClientId AS INT, @AuthorisedWorkerId AS INT)
 AS
+	IF NOT EXISTS(SELECT * FROM Services WHERE ServiceId = @ServiceId and IsDisabled = 0 )
+		BEGIN
+			RAISERROR('ERROR: Illegal Service Id',15,1);
+			RETURN;
+		END;
 	IF (@Total < 0)
 		BEGIN
 			RAISERROR('ERROR: Total can not be negative',15,1);
