@@ -63,6 +63,27 @@ GO
 GO
 USE BankTest
 GO
+/****** Object:  User [miraigajettolab]    Script Date: 2020/11/28 1:23:48 ******/
+CREATE USER [miraigajettolab] FOR LOGIN [miraigajettolab] WITH DEFAULT_SCHEMA=[db_owner]
+GO
+ALTER ROLE [db_owner] ADD MEMBER [miraigajettolab]
+GO
+ALTER ROLE [db_accessadmin] ADD MEMBER [miraigajettolab]
+GO
+ALTER ROLE [db_securityadmin] ADD MEMBER [miraigajettolab]
+GO
+ALTER ROLE [db_ddladmin] ADD MEMBER [miraigajettolab]
+GO
+ALTER ROLE [db_backupoperator] ADD MEMBER [miraigajettolab]
+GO
+ALTER ROLE [db_datareader] ADD MEMBER [miraigajettolab]
+GO
+ALTER ROLE [db_datawriter] ADD MEMBER [miraigajettolab]
+GO
+ALTER ROLE [db_denydatareader] ADD MEMBER [miraigajettolab]
+GO
+ALTER ROLE [db_denydatawriter] ADD MEMBER [miraigajettolab]
+GO
 /****** Object:  Table [dbo].[Clients]    Script Date: 2020/11/18 19:58:23 ******/
 SET ANSI_NULLS ON
 GO
