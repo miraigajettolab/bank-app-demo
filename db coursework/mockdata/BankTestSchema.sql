@@ -119,6 +119,7 @@ CREATE TABLE [dbo].[BankAccounts](
 	[Currency] [varchar](3) NOT NULL,
 	[ClientId] [int] NOT NULL,
 	[AccumulatedInterest] [money] NULL,
+	[IsClosed] [bit] NOT NULL,
  CONSTRAINT [PK_BankAccounts] PRIMARY KEY CLUSTERED 
 (
 	[BankAccountId] ASC
@@ -131,7 +132,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE VIEW [dbo].[AccountsData] as 
-SELECT ClientId, IsDebit, ServiceId, Total, DateOfCreation, Currency, AccumulatedInterest FROM BankAccounts
+SELECT * FROM BankAccounts
 WHERE ClientId = 2 --ClientID
 GO
 /****** Object:  Table [dbo].[Services]    Script Date: 2020/11/18 19:58:23 ******/
@@ -457,8 +458,8 @@ AS
 
 	IF (@IsDebit = 1) --Adding a Saving Account/Deposit
 	BEGIN
-		INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest)
-		VALUES (@IsDebit, @ServiceId, @Total, @CurrentDate, @Currency, @ClientId, '0');
+		INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest, IsClosed)
+		VALUES (@IsDebit, @ServiceId, @Total, @CurrentDate, @Currency, @ClientId, '0', 0);
 		INSERT INTO Transactions(TransferAccountId, Total, Timestamp, Currency, AuthorisedWorkerId, Status)
 		VALUES (SCOPE_IDENTITY(), @Total, CURRENT_TIMESTAMP, @Currency, @AuthorisedWorkerId, '1');
 		RETURN;
@@ -499,8 +500,8 @@ AS
 			EXECUTE Get_LoanPaymentPerMonth @Total, @Interest, @Months, @MonthlyPayment OUTPUT
 			DECLARE @AccumulatedInterest AS MONEY
 			SET @AccumulatedInterest = @MonthlyPayment*@Months-@Total
-			INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest)
-			VALUES (@IsDebit, @ServiceId, @AccumulatedInterest+@Total, @CurrentDate, @Currency, @ClientId, @AccumulatedInterest);
+			INSERT INTO BankAccounts(IsDebit, ServiceId, Total, DateOfCreation, Currency, ClientId, AccumulatedInterest, IsClosed)
+			VALUES (@IsDebit, @ServiceId, @AccumulatedInterest+@Total, @CurrentDate, @Currency, @ClientId, @AccumulatedInterest, 0);
 			INSERT INTO Transactions(SourceAccountId, Total, Timestamp, Currency, AuthorisedWorkerId, Status)
 			VALUES (SCOPE_IDENTITY(), @Total, CURRENT_TIMESTAMP, @Currency, @AuthorisedWorkerId, '1'); 
 	END;
@@ -527,14 +528,38 @@ ON [dbo].[Transactions]
 for insert
 AS
 BEGIN
-	IF((select Status from inserted) = 1)
+	IF((select Status from inserted) != 0)
 	BEGIN
 		return
 	END
+
+	DECLARE @IsIncorrect AS BIT
+	SET @IsIncorrect = 0
+	
 	IF EXISTS(SELECT Currency FROM inserted where Currency != 'RUB' and Currency != 'JPY' and Currency != 'USD' and Currency != 'EUR' and Currency != 'CNY' and Status = 0)
 	BEGIN
+		SET @IsIncorrect = 1 -- We can't have random currencies
+	END
+	IF EXISTS(SELECT Total FROM inserted where Total <= 0 and Status = 0)
+	BEGIN
+		SET @IsIncorrect = 1 -- We can only have positive transactions
+	END
+	IF EXISTS(SELECT SourceAccountId FROM inserted where (SELECT IsDebit FROM BankAccounts where BankAccountId = SourceAccountId) = 0 and Status = 0)
+	BEGIN
+		SET @IsIncorrect = 1 -- Taking money from Loan's Total is a no no
+	END
+	IF EXISTS(SELECT SourceAccountId FROM inserted where (SELECT IsClosed FROM BankAccounts where BankAccountId = SourceAccountId) = 1 and Status = 0)
+	BEGIN
+		SET @IsIncorrect = 1 -- Account is closed, so no transacitons
+	END
+	IF EXISTS(SELECT TransferAccountId FROM inserted where (SELECT IsClosed FROM BankAccounts where BankAccountId = TransferAccountId) = 1 and Status = 0)
+	BEGIN
+		SET @IsIncorrect = 1 -- Account is closed, so no transacitons
+	END
+	IF (@IsIncorrect = 1)
+	BEGIN
 		Update Transactions set Transactions.Status = -1
-		where Transactions.TransactionId = (select TransactionId from inserted) -- We can't have random currencies
+		where Transactions.TransactionId = (select TransactionId from inserted) 
 		RAISERROR('WARNING: INCORRECT TRANSACTION HAS BEEN REJECTED',15,1);
 		return
 	END
@@ -586,46 +611,6 @@ BEGIN
 END;
 GO
 ALTER TABLE [dbo].[Transactions] ENABLE TRIGGER [Account_Transfer]
-GO
-/****** Object:  Trigger [dbo].[Reject_Incorrect]    Script Date: 2020/11/24 12:27:50 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TRIGGER [dbo].[Reject_Incorrect]
-ON [dbo].[Transactions]
-after update
-AS
-BEGIN
-	DECLARE @IsIncorrect AS BIT
-	SET @IsIncorrect = 0
-	IF EXISTS(SELECT Total FROM Transactions where Total <= 0 and Status = 1)
-	BEGIN
-		SET @IsIncorrect = 1 -- We can only have positive transactions
-	END
-	IF EXISTS(SELECT SourceAccountId FROM Transactions where (SELECT IsDebit FROM BankAccounts where BankAccountId = SourceAccountId) = 0 and Status = 1)
-	BEGIN
-		SET @IsIncorrect = 1 -- Taking money from Loan's Total is a no no
-	END
-
-	IF (@IsIncorrect = 1)
-	BEGIN
-		RAISERROR('WARNING: INCORRECT TRANSACTION HAS BEEN IDENTIFIED',15,1);
-	--In case of an error, rollback will be issued automatically.
-	set xact_abort on
-	begin transaction
-		Update BankAccounts set BankAccounts.Total -= (select Total from inserted)
-		where BankAccounts.BankAccountId = (select TransferAccountId  from inserted)
-		Update BankAccounts set BankAccounts.Total += (select Total from inserted)
-		where BankAccounts.BankAccountId = (select SourceAccountId  from inserted)
-		Update Transactions set Transactions.Status = -1
-		where Transactions.TransactionId = (select TransactionId from inserted)
-	commit
-	RAISERROR('ATTENTION: INCORRECT TRANSACTION HAS BEEN REVERSED',15,1);
-	END;
-END;
-GO
-ALTER TABLE [dbo].[Transactions] ENABLE TRIGGER [Reject_Incorrect]
 GO
 /****** Object:  Trigger [dbo].[Reject_Suspicious]    Script Date: 2020/11/24 12:27:50 ******/
 SET ANSI_NULLS ON
