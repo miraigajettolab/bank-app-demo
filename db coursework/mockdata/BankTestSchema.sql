@@ -659,13 +659,40 @@ BEGIN
 
 	IF (@IsSus = 1)
 	BEGIN
+
+		DECLARE @SourceRate AS MONEY 
+		SET @SourceRate = 1
+		DECLARE @TransferRate AS MONEY
+		SET @TransferRate = 1
+		DECLARE @Multiplier AS MONEY -- -1 For Loans, 1 for Deposits 
+		SET @Multiplier = 1
+		DECLARE @SourceCurrency AS VARCHAR(3) --Currency of Source Bank Account
+		SET @SourceCurrency = (select Currency from BankAccounts where BankAccountId = (select SourceAccountId from inserted))
+		DECLARE @TransferCurrency AS VARCHAR(3) --Currency of Transfer Bank Account
+		SET @TransferCurrency = (select Currency from BankAccounts where BankAccountId = (select TransferAccountId from inserted))
+		DECLARE @TransactionCurrency AS VARCHAR(3) --Currency of Transaction
+		SET @TransactionCurrency = (select Currency from inserted)
+
+		IF (@SourceCurrency != @TransactionCurrency)
+		BEGIN
+			SET @SourceRate = (SELECT Rate FROM [dbo].Exchange WHERE [From] = @TransactionCurrency AND [To] = @SourceCurrency)
+		END;
+		IF (@TransferCurrency != @TransactionCurrency)
+		BEGIN
+			SET @TransferRate = (SELECT Rate FROM [dbo].Exchange WHERE [From] = @TransactionCurrency AND [To] = @TransferCurrency)
+		END;
+		IF ((select IsDebit from BankAccounts where BankAccountId = (select TransferAccountId from inserted)) = 0)
+		BEGIN
+			SET @Multiplier = -1
+		END;
+
 		RAISERROR('WARNING: SUSCICIOUS TRANSACTION HAS BEEN IDENTIFIED',15,1);
 	--In case of an error, rollback will be issued automatically.
 	set xact_abort on
 	begin transaction
-		Update BankAccounts set BankAccounts.Total -= (select Total from inserted)
+		Update BankAccounts set BankAccounts.Total -= ((select Total from inserted)*@TransferRate*@Multiplier)
 		where BankAccounts.BankAccountId = (select TransferAccountId  from inserted)
-		Update BankAccounts set BankAccounts.Total += (select Total from inserted)
+		Update BankAccounts set BankAccounts.Total += ((select Total from inserted)*@SourceRate)
 		where BankAccounts.BankAccountId = (select SourceAccountId  from inserted)
 		Update Transactions set Transactions.Status = -1
 		where Transactions.TransactionId = (select TransactionId from inserted)
