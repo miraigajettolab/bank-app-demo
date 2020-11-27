@@ -87,14 +87,15 @@ GO
 /******CREATE UNIQUE CONSTRAINTS******/
 CREATE UNIQUE INDEX UC_Clients_PassportNumber
   ON Clients(PassportNumber)
+  WHERE PassportNumber != 'DELETED'
 GO
 CREATE UNIQUE INDEX UC_Clients_TaxId
   ON Clients(TaxId)
-  WHERE TaxId IS NOT NULL
+  WHERE TaxId IS NOT NULL and TaxId != 'DELETED'
 GO
 CREATE UNIQUE INDEX UC_Clients_TelephoneNumber
   ON Clients(TelephoneNumber)
-  WHERE TelephoneNumber IS NOT NULL
+  WHERE TelephoneNumber IS NOT NULL and TelephoneNumber != 'DELETED'
 GO
 
 /****** Object:  View [dbo].[ClientData]    Script Date: 2020/11/18 19:58:23 ******/
@@ -307,7 +308,7 @@ CREATE TABLE [dbo].[Workers](
 	[TaxId] [varchar](12) NOT NULL,
 	[CriminalRecords] [varbinary](max) NULL,
 	[WorkerId] [int] IDENTITY(1,1) NOT NULL,
-	[AuthId] [int] NOT NULL,
+	[AuthId] [int] NULL,
  CONSTRAINT [PK_Workers] PRIMARY KEY CLUSTERED 
 (
 	[WorkerId] ASC
@@ -317,9 +318,11 @@ GO
 /******CREATE UNIQUE CONSTRAINTS******/
 CREATE UNIQUE INDEX UC_Workers_PassportNumber
   ON Workers(PassportNumber)
+  WHERE PassportNumber != 'DELETED'
 GO
 CREATE UNIQUE INDEX UC_Workers_TaxId
   ON Workers(TaxId)
+  WHERE TaxId != 'DELETED'
 GO
 
 ALTER TABLE [dbo].[BankAccounts]  WITH CHECK ADD  CONSTRAINT [FK_BankAccounts_Clients] FOREIGN KEY([ClientId])
