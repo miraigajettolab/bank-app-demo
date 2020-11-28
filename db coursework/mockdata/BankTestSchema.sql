@@ -91,7 +91,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Clients](
 	[PassportNumber] [varchar](10) NOT NULL,
-	[FullName] [varchar](200) NOT NULL,
+	[FullName] [nvarchar](200) NOT NULL,
 	[BirthDate] [date] NOT NULL,
 	[TaxId] [varchar](12) NULL,
 	[TelephoneNumber] [varchar](11) NULL,
@@ -324,7 +324,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Workers](
 	[PassportNumber] [varchar](10) NOT NULL,
-	[FullName] [varchar](200) NOT NULL,
+	[FullName] [nvarchar](200) NOT NULL,
 	[BirthDate] [date] NOT NULL,
 	[TaxId] [varchar](12) NOT NULL,
 	[CriminalRecords] [varbinary](max) NULL,
@@ -391,7 +391,7 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE PROCEDURE [dbo].[Add_Client](@PassportNumber AS VARCHAR(10), @FullName AS VARCHAR(200), @BirthDate AS DATE,
+CREATE PROCEDURE [dbo].[Add_Client](@PassportNumber AS VARCHAR(10), @FullName AS NVARCHAR(200), @BirthDate AS DATE,
 @AccountCreatorId AS INT, @TaxId VARCHAR(12) = NULL, @TelephoneNumber VARCHAR(11) = NULL, @IncomePerMonth MONEY = NULL)
 AS
 	IF (@IncomePerMonth != NULL AND @IncomePerMonth < 0)
@@ -411,7 +411,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 --完了
-CREATE PROCEDURE [dbo].[Add_Worker](@PassportNumber AS VARCHAR(10), @FullName AS VARCHAR(200), @BirthDate AS DATE, @TaxId as varchar(12),
+CREATE PROCEDURE [dbo].[Add_Worker](@PassportNumber AS VARCHAR(10), @FullName AS NVARCHAR(200), @BirthDate AS DATE, @TaxId as varchar(12),
 @Login as varchar(80), @Password as varchar(80))
 AS
 	--In case of an error, rollback will be issued automatically.
