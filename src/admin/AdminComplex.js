@@ -130,7 +130,7 @@ class AdminComplex  extends React.Component {
             ]
         } pageSize={5}/></div>
       } else {
-        tables.c1 = <DataGridPlaceholder msg={`Нет данных 🤕`}/>
+        tables.c1 = <DataGridPlaceholder height={400} msg={`Нет данных 🤕`}/>
       }
       if (this.state.c2 !== undefined && this.state.c2.count > 0) {
         tables.c2 = <div style={{ height: 400, width: '100%'}}>
@@ -148,7 +148,7 @@ class AdminComplex  extends React.Component {
             ]
         } pageSize={5}/></div>
       }  else {
-        tables.c2 = <DataGridPlaceholder msg={`Нет данных 🙈`}/>
+        tables.c2 = <DataGridPlaceholder height={400} msg={`Нет данных 🙈`}/>
       }
       if (this.state.c3 !== undefined && this.state.c3.count > 0) {
         tables.c3 = <div style={{ height: 400, width: '100%'}}>
@@ -172,7 +172,7 @@ class AdminComplex  extends React.Component {
             ]
         } pageSize={5}/></div>
       } else {
-        tables.c3 = <DataGridPlaceholder msg={`Нет данных 😥`}/>
+        tables.c3 = <DataGridPlaceholder height={400} msg={`Нет данных 😥`}/>
     }
       if (this.state.c4 !== undefined && this.state.c4.count > 0) {
         tables.c4 = <div style={{ height: 400, width: '100%'}}>
@@ -194,7 +194,7 @@ class AdminComplex  extends React.Component {
             ]
         } pageSize={5}/></div>
       } else {
-        tables.c4 = <DataGridPlaceholder msg={`Нет данных 💔`}/>
+        tables.c4 = <DataGridPlaceholder height={400} msg={`Нет данных 💔`}/>
       }
       if ((this.state.c5 !== undefined) && (this.state.c6 !== undefined)) {
         tables.c56 = <div style={{ height: 400, width: '100%'}}>
@@ -243,7 +243,7 @@ class AdminComplex  extends React.Component {
             ]
         } pageSize={5}/></div>
       } else {
-        tables.c7 = <DataGridPlaceholder msg={`Нет данных 😣`}/>
+        tables.c7 = <DataGridPlaceholder height={400} msg={`Нет данных 😣`}/>
       }
     return (
       <div className="AdminComplex ">

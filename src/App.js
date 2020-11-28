@@ -19,6 +19,7 @@ class App extends React.Component {
     };
     this.changeHandler = this.changeHandler.bind(this)
     this.storeToken = this.storeToken.bind(this)
+    this.logout = this.logout.bind(this)
   }
 
   changeHandler(event) {
@@ -32,6 +33,10 @@ class App extends React.Component {
 
   storeToken(token) { //used by Login.js
     this.setState({"token":token})
+  }
+
+  logout(){
+    this.setState({"token":null})
   }
 
 
@@ -55,15 +60,18 @@ class App extends React.Component {
         ? <Admin
             serverURL = {this.state.serverURL}
             token = {this.state.token}
+            logout = {this.logout}
           /> 
         : (this.state.accType === "worker") 
           ? <Worker
               serverURL = {this.state.serverURL}
               token = {this.state.token}
+              logout = {this.logout}
             /> 
           : <Client
               serverURL = {this.state.serverURL}
               token = {this.state.token}
+              logout = {this.logout}
             />
         }
       </div>

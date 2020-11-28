@@ -11,7 +11,7 @@ export default function DataGridPlaceholder(props) {
                 {props.msg}
             </FormLabel>
             <Paper 
-                style={{ height: 400, width: '100%'}}
+                style={{ height: props.height, width: '100%'}}
                 variant="outlined"
             />
     </div>
