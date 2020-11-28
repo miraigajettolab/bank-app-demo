@@ -327,7 +327,7 @@ CREATE TABLE [dbo].[Workers](
 	[FullName] [nvarchar](200) NOT NULL,
 	[BirthDate] [date] NOT NULL,
 	[TaxId] [varchar](12) NOT NULL,
-	[CriminalRecords] [varbinary](max) NULL,
+	[CriminalRecords] [nvarchar](max) NULL,
 	[WorkerId] [int] IDENTITY(1,1) NOT NULL,
 	[AuthId] [int] NULL,
  CONSTRAINT [PK_Workers] PRIMARY KEY CLUSTERED 
