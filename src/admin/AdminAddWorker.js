@@ -18,9 +18,9 @@ class AdminAddWorker  extends React.Component {
       TaxId: "",
       Login: "",
       Password: "",
-      showAlert: false,
-      alertMsg: "",
-      alertSeverity: "",
+      showAlert: true,
+      alertMsg: "Добавление работника",
+      alertSeverity: "info",
     };
 
     this.changeHandler = this.changeHandler.bind(this)
@@ -46,7 +46,7 @@ class AdminAddWorker  extends React.Component {
   processAddWorker(){
     this.setState({ // reseting alerts
       showAlert:false, 
-      alertMsg: "", 
+      alertMsg: "-", 
       alertSeverity: ""
     })
     fetch(this.props.serverURL + `/add-worker?PassportNumber=${this.state.PassportNumber}&FullName=${this.state.FullName}&BirthDate=${this.state.BirthDate}&TaxId=${this.state.TaxId}&Login=${this.state.Login}&Password=${this.state.Password}`, 
@@ -85,7 +85,7 @@ class AdminAddWorker  extends React.Component {
     return (
       <div className="AdminAddWorker" >
       <Alert 
-        style={{marginBottom: "20px", visibility: this.state.showAlert ? "visible": "hidden"}} 
+        style={{marginBottom: "10px", visibility: this.state.showAlert ? "visible": "hidden"}} 
         elevation={6} 
         variant="filled" 
         severity={this.state.alertSeverity}>{this.state.alertMsg}
@@ -100,7 +100,6 @@ class AdminAddWorker  extends React.Component {
             onChange = {this.changeHandler}
           />
           <TextField 
-            style={{marginBottom: "10px"}}
             label="ФИО"
             variant="outlined"
             name = "FullName"
@@ -111,10 +110,11 @@ class AdminAddWorker  extends React.Component {
             <KeyboardDatePicker
               disableToolbar
               variant="inline"
+              inputVariant="outlined"
               format="MM/dd/yyyy"
               margin="normal"
               id="date-picker-inline"
-              label="Начало пероида"
+              label="День Рождения"
               value={this.state.BirthDate}
               onChange={(v) => this.handleTime(v, "BirthDate")}
               KeyboardButtonProps={{'aria-label': 'change date'}}
