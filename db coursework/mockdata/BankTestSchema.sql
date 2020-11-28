@@ -167,11 +167,11 @@ CREATE TABLE [dbo].[Services](
 	[Months] [int] NOT NULL,
 	[Interest] [float] NOT NULL,
 	[IsDebit] [bit] NOT NULL,
-	[LoanOverdueTerms] [varchar](max) NULL,
-	[EarlyWithdrawalTerms] [varchar](max) NULL,
+	[LoanOverdueTerms] [nvarchar](max) NULL,
+	[EarlyWithdrawalTerms] [nvarchar](max) NULL,
 	[Currency] [varchar](3) NOT NULL,
 	[RequiredIncome] [money] NULL,
-	[Description] [varchar](max) NOT NULL,
+	[Description] [nvarchar](max) NOT NULL,
 	[IsDisabled] [bit] NOT NULL,
  CONSTRAINT [PK_Services] PRIMARY KEY CLUSTERED 
 (
