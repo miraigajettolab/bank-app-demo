@@ -44,6 +44,15 @@ class AdminFindWorker  extends React.Component {
     type === "checkbox" ? this.setState({[name]:checked}) : this.setState({[name]:value})
   }
 
+  filterSelect(sel){
+    let output = this.state.res.data.filter(row => {
+      if (row.WorkerId === sel){
+        return row
+      }
+    })
+    this.props.selectionHandler(output)
+  }
+
   render() { 
     let table = {}
     if (this.state.res !== undefined && this.state.res.count > 0) {
@@ -57,10 +66,12 @@ class AdminFindWorker  extends React.Component {
         [
             { field: 'id', headerName: 'ID',  flex: 0.5},
             { field: 'FullName', headerName: 'ФИО', flex: 1},
-            { field: 'PassportNumber', headerName: 'Телефон', flex: 1},
+            { field: 'PassportNumber', headerName: 'Номер Паспорта', flex: 1},
             { flex: 0.1}
         ]
-    } pageSize={2}/></div>
+    } pageSize={2}
+      onSelectionChange={(sel) => {this.filterSelect(sel.rowIds[0])}}
+      /></div>
     } else {
     table = <DataGridPlaceholder height={220} msg={`Нет данных 😿`}/>
     }
