@@ -44,6 +44,36 @@ var server = app.listen(process.env.PORT || 5000, function () {
     console.log(`app listening at http://${host}:${port}`)
 });
 
+//to get just errors
+function AdminQueryNoRes(sqlQuery, req, res) {
+  if (!req.header('Auth-Token')) {
+    err = "You have to provide an admin token as 'Auth-Token' header to use this method. The token is generated as sha256(UserName + salt + Password), you can get salt at /get-salt"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  if (req.header('Auth-Token') != authHash) {
+    err = "Authentication failed"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  if (!sqlQuery) {
+    err = "You have to provide a query"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  const request = new Request(
+    sqlQuery, // SQL query
+    (err) => {
+      if (err) {
+        console.error("ERR:" + err.message);
+        res.end(`{"error":${JSON.stringify(err.message)}}`)
+      } else {
+        res.end(`{"res":"success"}`) // Final response
+      }
+    }
+  );
+  connection.execSql(request);
+}
 
 function AdminQuery(sqlQuery, req, res) {
   if (!req.header('Auth-Token')) {
@@ -280,30 +310,78 @@ app.get('/complex/14', function (req, res) {
 });
 
 app.get('/add-worker', function (req, res) {
-  let query = `EXEC Add_Worker '${req.query.PassportNumber}', '${req.query.FullName}', '${req.query.BirthDate}', '${req.query.TaxId}', '${req.query.Login}', '${req.query.Password}';` // SQL query
-  if(!req.query.PassportNumber || !Number.isInteger(+req.query.PassportNumber || req.query.PassportNumber.length != 10)){
-    res.end(`{"error":"Введите корректный номер паспорта"}`)
+  let query = `EXEC Add_Worker '${req.query.PassportNumber}', N'${req.query.FullName}', '${req.query.BirthDate}', '${req.query.TaxId}', '${req.query.Login}', '${req.query.Password}';` // SQL query
+  if(!req.query.PassportNumber || !Number.isInteger(+req.query.PassportNumber) || req.query.PassportNumber.length != 10 ||  req.query.PassportNumber < 1 || req.query.PassportNumber[0] == '0'){
+    res.end(`{"error":"Введите корректный номер паспорта (10 цифр)"}`)
   }
-  AdminQuery(query, req, res)
+  else if(!req.query.FullName){
+    res.end(`{"error":"Введите ФИО"}`)
+  }
+  else if(!req.query.TaxId || !Number.isInteger(+req.query.TaxId) || req.query.TaxId.length != 12 || req.query.TaxId[0] == '0'){
+    res.end(`{"error":"Введите корректный ИНН (12 цифр)"}`)
+  }
+  else if(!req.query.Login || req.query.Login.length < 6 || req.query.Login.length > 80){
+    res.end(`{"error":"Введите корректный логин (6-80 символов)"}`)
+  }
+  else if(!req.query.Password || req.query.Password.length < 10 || req.query.Password.length > 80){
+    res.end(`{"error":"Введите корректный пароль (10-80 символов)"}`)
+  }
+  else {
+    //res.end(`{"all":"right"}`)
+    AdminQueryNoRes(query, req, res)
+  }
 });
 
 app.get('/find-worker', function (req, res) {
-  let query = `SELECT * FROM Workers where WorkerId = '${req.query.WorkerId}' or FullName = '${req.query.FullName}'` // SQL query
+  let query = `SELECT * FROM Workers where WorkerId = '${req.query.WorkerId}' or FullName = N'${req.query.FullName}'` // SQL query
   AdminQuery(query, req, res)
 });
 
 app.get('/alter-worker', function (req, res) {
   let query = `UPDATE Workers
-  SET PassportNumber = '${req.query.PassportNumber}', FullName = '${req.query.FullName}', BirthDate='${req.query.BirthDate}', TaxId = '${req.query.TaxId}', CriminalRecords = ${req.query.CriminalRecords}, AuthId = ${req.query.AuthId}
+  SET PassportNumber = '${req.query.PassportNumber}', FullName = N'${req.query.FullName}', BirthDate='${req.query.BirthDate}', TaxId = '${req.query.TaxId}', CriminalRecords = ${req.query.CriminalRecords}
   WHERE WorkerId = '${req.query.WorkerId}'` // SQL query
-  AdminQuery(query, req, res)
+  if(!req.query.WorkerId || !Number.isInteger(+req.query.WorkerId) || req.query.WorkerId < 1){
+    res.end('{"error":"Введите корректный Worker Id"}')
+  }
+  else if(!req.query.PassportNumber || !Number.isInteger(+req.query.PassportNumber) || req.query.PassportNumber.length != 10 || req.query.PassportNumber < 1 || req.query.PassportNumber[0] == '0'){
+    res.end(`{"error":"Введите корректный номер паспорта (10 цифр)"}`)
+  }
+  else if(!req.query.FullName){
+    res.end(`{"error":"Введите ФИО"}`)
+  }
+  else if(!req.query.TaxId || !Number.isInteger(+req.query.TaxId) || req.query.TaxId.length != 12 || req.query.TaxId[0] == '0'){
+    res.end(`{"error":"Введите корректный ИНН (12 цифр)"}`)
+  } 
+  else {
+    AdminQueryNoRes(query, req, res)
+  }
+});
+app.get('/alter-worker-auth', function (req, res) {
+  let query = `Update Auth
+  set Login = '${req.query.Login}', PasswordHash = '${req.query.PasswordHash.toUpperCase()}'
+  from Workers as wk 
+  where wk.AuthId = Auth.AuthId and wk.WorkerId = '${req.query.WorkerId}'
+  `
+  if(!req.query.WorkerId || !Number.isInteger(+req.query.WorkerId) || req.query.WorkerId < 1){
+    res.end('{"error":"Введите корректный Worker Id"}')
+  }
+  else if(!req.query.Login || req.query.Login.length < 6 || req.query.Login.length > 80){
+    res.end(`{"error":"Введите корректный логин (6-80 символов)"}`)
+  }
+  else if(!req.query.PasswordHash || req.query.PasswordHash.length != 64){
+    res.end(`{"error":"Хеш пароля не удовлетворяет выходу алгоритма sha256"}`)
+  } 
+  else {
+    AdminQueryNoRes(query, req, res)
+  }
 });
 
 app.get('/delete-worker', function (req, res) {
   let query = `UPDATE Workers
   SET PassportNumber = 'DELETED', FullName = 'DELETED', BirthDate='1970-01-01', TaxId = 'DELETED', CriminalRecords = NULL, AuthId = NULL
   WHERE WorkerId = '${req.query.WorkerId}'` // SQL query
-  AdminQuery(query, req, res)
+  AdminQueryNoRes(query, req, res)
 });
 /*
 app.get('/complex/', function (req, res) {
