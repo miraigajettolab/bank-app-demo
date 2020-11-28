@@ -383,6 +383,43 @@ app.get('/delete-worker', function (req, res) {
   WHERE WorkerId = '${req.query.WorkerId}'` // SQL query
   AdminQueryNoRes(query, req, res)
 });
+
+app.get('/find-service', function (req, res) {
+  let query = `SELECT * FROM Services where ServiceId = '${req.query.ServiceId}' or Currency = '${req.query.Currency}'` // SQL query
+  AdminQuery(query, req, res)
+});
+
+app.get('/add-service', function (req, res) {
+  let query = `INSERT [dbo].[Services] ([Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) 
+  VALUES ('${req.query.Months}', '${req.query.Interest}', '${req.query.IsDebit}', N'${req.query.LoanOverdueTerms}', N'${req.query.EarlyWithdrawalTerms}', '${req.query.Currency}', '${req.query.RequiredIncome}', N'${req.query.Description}', 0)` // SQL query
+  if(!req.query.Months || !Number.isInteger(+req.query.Months) || req.query.Months < 1){
+    res.end(`{"error":"Введите корректное количество месяцев (натуральное число)"}`)
+  }
+  else if(!req.query.Interest || isNaN(parseFloat(req.query.Interest)) || !isFinite(req.query.Interest) || parseFloat(req.query.Interest) < 0){
+    res.end(`{"error":"Введите корректную процентную ставку (неотрицательное вещественное число)"}`)
+  }
+  else if(!req.query.RequiredIncome || (isNaN(parseFloat(req.query.RequiredIncome)) && isFinite(req.query.RequiredIncome)) || parseFloat(req.query.RequiredIncome) < 0){
+    res.end(`{"error":"Введите корректное количество необходимых доходов (неотрицательное вещественное число)"}`)
+  }
+  else {
+    AdminQueryNoRes(query, req, res)
+  }
+});
+
+app.get('/enable-service', function (req, res) {
+  let query = `UPDATE Services
+  SET IsDisabled = 0
+  WHERE ServiceId = '${req.query.ServiceId}'` // SQL query
+  AdminQueryNoRes(query, req, res)
+});
+
+app.get('/disable-service', function (req, res) {
+  let query = `UPDATE Services
+  SET IsDisabled = 1
+  WHERE ServiceId = '${req.query.ServiceId}'` // SQL query
+  AdminQueryNoRes(query, req, res)
+});
+
 /*
 app.get('/complex/', function (req, res) {
   let query = `` // SQL query
