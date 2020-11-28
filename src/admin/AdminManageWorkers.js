@@ -10,7 +10,7 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 //PROPS: serverURL, token
 
-class AdminManage  extends React.Component {
+class AdminManageWorkers  extends React.Component {
   constructor(props) {
 		super(props);
 		this.state = {
@@ -83,7 +83,7 @@ class AdminManage  extends React.Component {
       console.log(this.state)
       
     return (
-      <div className="AdminManage" >
+      <div className="AdminManageWorkers" >
         <div style = {{display: "flex", justifyContent: "space-between", marginLeft: "40px", marginRight: "40px", marginTop: "40px"}}>
           <div style={{flex: 4, marginRight: "40px"}}>
             <AdminFindWorker
@@ -176,4 +176,4 @@ class AdminManage  extends React.Component {
     );
   }
 }
-export default AdminManage;
+export default AdminManageWorkers;

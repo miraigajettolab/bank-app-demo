@@ -1,13 +1,14 @@
 import React from 'react';
 import AdminComplex from './AdminComplex'
 import AdminAppBar from './AdminAppBar'
-import AdminManage from './AdminManage'
+import AdminManageWorkers from './AdminManageWorkers'
+import AdminManageServices from './AdminManageServices'
 
 class Admin  extends React.Component {
   constructor(props) {
 		super(props);
 		this.state = {
-            activeSubPanel : "AdminManage"
+            activeSubPanel : "AdminManageWorkers"
         };
 
     this.changeHandler = this.changeHandler.bind(this)
@@ -44,12 +45,19 @@ class Admin  extends React.Component {
                 token = {this.props.token}
             />
         break
-        case "AdminManage":
+        case "AdminManageWorkers":
             subPanel = 
-            <AdminManage 
+            <AdminManageWorkers 
                 serverURL = {this.props.serverURL} //passing the props from app.js
                 token = {this.props.token}
             />
+        break
+        case "AdminManageServices":
+          subPanel = 
+          <AdminManageServices 
+              serverURL = {this.props.serverURL} //passing the props from app.js
+              token = {this.props.token}
+          />
         break
         default:
         break

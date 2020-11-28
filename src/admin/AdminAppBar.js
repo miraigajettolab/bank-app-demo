@@ -7,6 +7,7 @@ import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import DeveloperBoardIcon from '@material-ui/icons/DeveloperBoard';
 import TuneIcon from '@material-ui/icons/Tune';
+import GroupIcon from '@material-ui/icons/Group';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -34,10 +35,16 @@ export default function ButtonAppBar(props) {
                 Обзор
             </Typography>
           </IconButton>
-          <IconButton edge="start" className={classes.menuButton} id="AdminManage" color="inherit" aria-label="menu" onClick={e => props.go(e)}>
-            <TuneIcon id="AdminManage" style={{marginRight: "5px"}}/>
-            <Typography id="AdminManage"  variant="h6" className={classes.title}>
-                Управление
+          <IconButton edge="start" className={classes.menuButton} id="AdminManageWorkers" color="inherit" aria-label="menu" onClick={e => props.go(e)}>
+            <GroupIcon id="AdminManageWorkers" style={{marginRight: "5px"}}/>
+            <Typography id="AdminManageWorkers"  variant="h6" className={classes.title}>
+                Работники
+            </Typography>
+          </IconButton>
+          <IconButton edge="start" className={classes.menuButton} id="AdminManageServices" color="inherit" aria-label="menu" onClick={e => props.go(e)}>
+            <TuneIcon id="AdminManageServices" style={{marginRight: "5px"}}/>
+            <Typography id="AdminManageServices"  variant="h6" className={classes.title}>
+                Услуги
             </Typography>
           </IconButton>
             <Typography variant="h6" className={classes.title}>
