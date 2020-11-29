@@ -9,6 +9,7 @@ import FormControl from '@material-ui/core/FormControl';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
+import Divider from '@material-ui/core/Divider';
 //PROPS: serverURL, token
 
 class WorkerManageClients  extends React.Component {
@@ -198,13 +199,25 @@ class WorkerManageClients  extends React.Component {
             }
           </div>
         </div>
-        Я ВНИЗУ
-        <ViewClientData
-          serverURL = {this.props.serverURL} //passing the props from Worker.js
-          token = {this.props.token}
-          ClientId = {this.state.selectedClientData.ClientId}
-          IsWorker = {true}
-        />
+        <div style = {{marginLeft: "40px", marginRight: "40px", marginTop: "10px"}}>
+          {(this.state.selectedClientData.ClientId === "") ? <div></div> : 
+            <div>
+              <Divider style = {{marginTop: "30px", marginBottom: "30px"}} />
+              <Typography 
+                variant="h4" 
+                style = {{marginBottom: "10px"}}
+              >  
+                {`Данные Клиента с ID ${this.state.selectedClientData.ClientId}:`}
+              </Typography> 
+              <ViewClientData
+              serverURL = {this.props.serverURL} //passing the props from Worker.js
+              token = {this.props.token}
+              ClientId = {this.state.selectedClientData.ClientId}
+              IsWorker = {true}
+              />
+            </div>
+          }
+        </div>
       </div>
     );
   }

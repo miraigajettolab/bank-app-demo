@@ -97,7 +97,7 @@ class ViewClientData  extends React.Component {
       //console.log(this.state)
       let tables = {}
       if (this.state.c1 !== undefined && this.state.c1.count > 0) {
-        tables.c1 = <div style={{ height: 400, width: '100%'}}>
+        tables.c1 = <div style={{ height: 170, width: '100%'}}>
             <FormLabel component="legend" style={{marginBottom: "10px"}}>Данные:</FormLabel>
             <DataGrid rows={
             this.state.c1.data.map( row => {
@@ -105,16 +105,16 @@ class ViewClientData  extends React.Component {
                   'id':row.ClientId, 
                   'PassportNumber': row.PassportNumber, 
                   'FullName': row.FullName,
-                  'BirthDate': row.BirthDate,
-                  'TaxId': row.TaxId,
-                  'TelephoneNumber': row.TelephoneNumber,
-                  'IncomePerMonth': row.IncomePerMonth
+                  'BirthDate': new Date(row.BirthDate).toLocaleDateString('ru-RU', { timeZone: 'UTC' }),
+                  'TaxId': (row.TaxId.toUpperCase() === "NULL") ? "-" : row.TaxId,
+                  'TelephoneNumber': (row.TelephoneNumber.toUpperCase() === "NULL") ? "-" : row.TelephoneNumber,
+                  'IncomePerMonth': (row.IncomePerMonth.toUpperCase() === "NULL") ? "-" : row.IncomePerMonth
                 }
             })
         } columns={
             [
                 { field: 'id', headerName: 'ID',  flex: 0.5},
-                { field: 'PassportNumber', headerName: 'Номер Паспорта',  flex: 0.5},
+                { field: 'PassportNumber', headerName: 'Номер Паспорта',  flex: 1},
                 { field: 'FullName', headerName: 'ФИО', flex: 1},
                 { field: 'BirthDate', headerName: 'Дата Рождения', flex: 1},
                 { field: 'TaxId', headerName: 'ИНН', flex: 1},
@@ -122,9 +122,9 @@ class ViewClientData  extends React.Component {
                 { field: 'IncomePerMonth', headerName: 'Доход', flex: 1},
                 { flex: 0.1}
             ]
-        } pageSize={5}/></div>
+        } pageSize={1}/></div>
       } else {
-        tables.c1 = <DataGridPlaceholder height={400} msg={`Нет данных 🤕`}/>
+        tables.c1 = <DataGridPlaceholder height={170} msg={`Нет данных 🤕`}/>
       }
       if (this.state.c2 !== undefined && this.state.c2.count > 0) {
         tables.c2 = <div style={{ height: 400, width: '100%'}}>
@@ -136,7 +136,7 @@ class ViewClientData  extends React.Component {
                 'IsDebit': (row.IsDebit === "false") ? "кредит" : "вклад",
                 'ServiceId': row.ServiceId,
                 'Total': row.Total,
-                'DateOfCreation': row.DateOfCreation,
+                'DateOfCreation': new Date(row.DateOfCreation).toLocaleDateString('ru-RU', { timeZone: 'UTC' }),
                 'Currency': row.Currency,
                 'AccumulatedInterest': row.AccumulatedInterest,
                 'IsClosed': (row.IsClosed === "false") ? "нет" : "да"
@@ -146,12 +146,12 @@ class ViewClientData  extends React.Component {
             [
               { field: 'id', headerName: 'ID',  flex: 0.5},
               { field: 'IsDebit', headerName: 'Тип',  flex: 0.5},
-              { field: 'ServiceId', headerName: 'ID Услуги', flex: 1},
+              { field: 'ServiceId', headerName: 'ID Услуги', flex: 0.5},
               { field: 'Total', headerName: 'Сумма', flex: 1},
               { field: 'DateOfCreation', headerName: 'Дата Открытия', flex: 1},
-              { field: 'Currency', headerName: 'Валюта', flex: 1},
-              { field: 'AccumulatedInterest', headerName: 'Проценты', flex: 1},
-              { field: 'IsClosed', headerName: 'Закрыт?', flex: 1},
+              { field: 'Currency', headerName: 'Валюта', flex: 0.5},
+              { field: 'AccumulatedInterest', headerName: 'Сумма Процентов', flex: 1},
+              { field: 'IsClosed', headerName: 'Закрыт?', flex: 0.5},
               { flex: 0.1}
             ]
         } pageSize={5}/></div>
@@ -165,8 +165,8 @@ class ViewClientData  extends React.Component {
             this.state.c3.data.map( row => {
                 return {
                     'id':row.TransactionId,
-                    'SourceAccountId': row.SourceAccountId,
-                    'TransferAccountId': row.TransferAccountId, 
+                    'SourceAccountId': (row.SourceAccountId.toUpperCase() === "NULL") ? "Наличные" : row.SourceAccountId,
+                    'TransferAccountId': (row.TransferAccountId.toUpperCase() === "NULL") ? "На Руки" : row.TransferAccountId, 
                     'Total': row.Total,
                     'Currency': row.Currency, 
                     'Status': (row.Status === "1" ? "исполнено":(row.Status === "-1") ? "отклонено" : "в обработке"), 
@@ -190,9 +190,9 @@ class ViewClientData  extends React.Component {
     }
     return (
       <div className="ViewClientData ">
-        <div style = {{display: "flex", marginLeft: "10%", marginRight: "10%", marginTop: "10px"}}>
+        <div style = {{display: "flex"}}>
           <TextField 
-                style = {{flex: 1, marginTop: "16px", marginBottom: "8px"}}
+                style = {{flex: 1.05, marginTop: "16px", marginBottom: "8px"}}
                 label="Количество"
                 error= {!Number.isInteger(+this.state.maxCount)}
                 variant="standard"
@@ -201,14 +201,14 @@ class ViewClientData  extends React.Component {
                 onChange = {this.changeHandler}
             />
             <Button 
-                style = {{flex: 1, marginLeft: "10px" ,marginTop: "16px", marginBottom: "8px"}}
+                style = {{flex: 1, marginLeft: "40px" ,marginTop: "16px", marginBottom: "8px"}}
                 variant="contained"
                 color="primary"
                 onClick={this.handleRefresh}>
                     Обновить
             </Button>
           </div>
-        <div style = {{marginLeft: "10%", marginRight: "10%", marginTop: "10px"}}>
+        <div style = {{marginTop: "10px"}}>
           <div style = {{display: "flex", justifyContent: "space-between", marginBottom: "40px"}}>
             {tables.c1}
           </div>
