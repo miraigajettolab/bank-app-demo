@@ -557,6 +557,48 @@ app.get('/alter-client', function (req, res) {
   }
 });
 
+/*
+app.get('/add-client-auth', function (req, res) { //NOTE that this doesn't set password, just a login
+  let query = `Declare @AuthId as int
+  Declare @Promise as varchar(64)
+  Set @Promise = (SELECT CONVERT(varchar(64),LEFT(REPLACE(NEWID(),'-',''),64)))
+  insert into Auth(Login,PasswordHash) Values ('${req.query.Login}', @Promise); --because of a circular dependency 
+  set @AuthId = SCOPE_IDENTITY()
+  UPDATE Clients
+  SET AuthId = @AuthId
+  WHERE ClientId = '${req.query.ClientId}'`
+  if(!req.query.ClientId || !Number.isInteger(+req.query.ClientId) || req.query.ClientId < 1){
+    res.end('{"error":"Введите корректный Client Id"}')
+  }
+  else if(!req.query.Login || req.query.Login.length < 6 || req.query.Login.length > 80){
+    res.end(`{"error":"Введите корректный логин (6-80 символов)"}`)
+  }
+  else {
+    WorkerQueryNoRes(query, req, res)
+  }
+});
+*/
+
+app.get('/alter-client-auth', function (req, res) {
+  let query = `Update Auth
+  set Login = '${req.query.Login}', PasswordHash = '${req.query.PasswordHash.toUpperCase()}'
+  from Clients as cl 
+  where cl.AuthId = Auth.AuthId and cl.ClientId = '${req.query.ClientId}'
+  `
+  if(!req.query.ClientId || !Number.isInteger(+req.query.ClientId) || req.query.ClientId < 1){
+    res.end('{"error":"Введите корректный Client Id"}')
+  }
+  else if(!req.query.Login || req.query.Login.length < 6 || req.query.Login.length > 80){
+    res.end(`{"error":"Введите корректный логин (6-80 символов)"}`)
+  }
+  else if(!req.query.PasswordHash || req.query.PasswordHash.length != 64){
+    res.end(`{"error":"Хеш пароля не удовлетворяет выходу алгоритма sha256"}`)
+  } 
+  else {
+    WorkerQueryNoRes(query, req, res)
+  }
+});
+
 app.get('/delete-client', function (req, res) {
   let query = `UPDATE Clients
   SET PassportNumber = 'DELETED', FullName = 'DELETED', BirthDate='1970-01-01', TaxId = NULL, TelephoneNumber = NULL, IncomePerMonth = NULL, AuthId = NULL
