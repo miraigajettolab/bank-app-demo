@@ -155,7 +155,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE VIEW [dbo].[AccountsData] as 
 SELECT * FROM BankAccounts
-WHERE ClientId = 2 --ClientID
 GO
 /****** Object:  Table [dbo].[Services]    Script Date: 2020/11/18 19:58:23 ******/
 SET ANSI_NULLS ON
@@ -241,7 +240,6 @@ GO
 CREATE VIEW [dbo].[ClientTransactionsData] as 
 SELECT ClientId, TransactionId, SourceAccountId, TransferAccountId, Transactions.Total, Timestamp, Transactions.Currency, AuthorisedWorkerId, Status FROM Transactions
 JOIN BankAccounts ON Transactions.TransferAccountId = BankAccounts.BankAccountId
-WHERE BankAccounts.ClientId = 2 --ClientID
 GO
 /****** Object:  View [dbo].[TransactionsData]    Script Date: 2020/11/18 19:58:23 ******/
 SET ANSI_NULLS ON
@@ -251,7 +249,7 @@ GO
 --5. Транзакции за указанный период времени
 CREATE VIEW [dbo].[TransactionsData] as 
 SELECT * FROM Transactions
-where Timestamp >= '2020-11-01' AND Timestamp <= '2020-12-01'
+--where Timestamp >= '2020-11-01' AND Timestamp <= '2020-12-01'
 GO
 /****** Object:  Table [dbo].[Auth]    Script Date: 2020/11/18 19:58:23 ******/
 SET ANSI_NULLS ON
