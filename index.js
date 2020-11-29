@@ -677,6 +677,45 @@ app.get('/complex/', function (req, res) {
 });
 */
 
+app.get('/view-client-data', function (req, res) {
+  let query = `SELECT TOP(${req.query.count}) * FROM ClientData WHERE ClientId = '${req.query.ClientId}'` // SQL query
+  if(req.query.IsWorker === "true") {
+    WorkerQuery(query, req, res)
+  }
+  else if (req.query.IsWorker === "false") {
+    //TODO:
+  }
+  else {
+    res.end(`{"error":"Ты кто такой вообще?"}`)
+  }
+});
+
+app.get('/view-accounts-data', function (req, res) {
+  let query = `SELECT TOP(${req.query.count}) * FROM AccountsData WHERE ClientId = '${req.query.ClientId}'` // SQL query
+  if(req.query.IsWorker === "true") {
+    WorkerQuery(query, req, res)
+  }
+  else if (req.query.IsWorker === "false") {
+    //TODO:
+  }
+  else {
+    res.end(`{"error":"Ты кто такой вообще?"}`)
+  }
+});
+
+app.get('/view-client-transactions-data', function (req, res) {
+  let query = `SELECT TOP(${req.query.count}) * FROM ClientTransactionsData WHERE ClientId = '${req.query.ClientId}'` // SQL query
+  if(req.query.IsWorker === "true") {
+    WorkerQuery(query, req, res)
+  }
+  else if (req.query.IsWorker === "false") {
+    //TODO:
+  }
+  else {
+    res.end(`{"error":"Ты кто такой вообще?"}`)
+  }
+});
+
 /* GET result of some SQL query */
 app.get('/exchange', function (req, res) {
   let query = `SELECT * FROM [dbo].[Exchange]` // SQL query
