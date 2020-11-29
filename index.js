@@ -465,8 +465,8 @@ app.get('/delete-worker', function (req, res) {
 });
 
 app.get('/find-service', function (req, res) {
-  let query = `SELECT * FROM Services where ServiceId = '${req.query.ServiceId}' or Currency = '${req.query.Currency}'` // SQL query
-  AdminQuery(query, req, res)
+  let query = `SELECT * FROM ServicesData where ServiceId = '${req.query.ServiceId}' or Currency = '${req.query.Currency}'` // SQL query
+  FreeQuery(query, req, res)
 });
 
 app.get('/add-service', function (req, res) {
@@ -603,6 +603,45 @@ app.get('/delete-client', function (req, res) {
   let query = `UPDATE Clients
   SET PassportNumber = 'DELETED', FullName = 'DELETED', BirthDate='1970-01-01', TaxId = NULL, TelephoneNumber = NULL, IncomePerMonth = NULL, AuthId = NULL
   WHERE ClientId = '${req.query.ClientId}'` // SQL query
+  WorkerQueryNoRes(query, req, res)
+});
+
+app.get('/find-bank-account', function (req, res) {
+  let query = `SELECT * FROM BankAccounts where ClientId = '${req.query.ClientId}'` // SQL query
+  WorkerQuery(query, req, res)
+});
+
+app.get('/add-bank-account', function (req, res) {
+  let query = `
+  DECLARE @WorkerId AS INT
+  SET @WorkerId = (SELECT WorkerId FROM Workers WHERE AuthId = (SELECT AuthId FROM Auth Where PasswordHash = '${req.header('Auth-Token')}'))
+  EXEC Add_BankAccount '${req.query.ServiceId}', '${req.query.Total}', '${req.query.ClientId}', @WorkerId;` // SQL query
+  if(req.query.ServiceId.length === 0){
+    res.end(`{"error":"Предоставьте Id услуги"}`)
+  }
+  else if(req.query.Total.length === 0 || (isNaN(parseFloat(req.query.Total)) && isFinite(req.query.Total)) || parseFloat(req.query.Total) < 0){
+    res.end(`{"error":"Введите корректную сумму (неотрицательное вещественное число)"}`)
+  }
+  else if(req.query.ClientId.length === 0){
+    res.end(`{"error":"Предоставьте Id клиента"}`)
+  }
+  else {
+    //console.log(query)
+    WorkerQueryNoRes(query, req, res)
+  }
+});
+
+app.get('/enable-bank-account', function (req, res) {
+  let query = `UPDATE BankAccounts
+  SET IsClosed = 0
+  WHERE BankAccountId = '${req.query.BankAccountId}'` // SQL query
+  WorkerQueryNoRes(query, req, res)
+});
+
+app.get('/disable-bank-account', function (req, res) {
+  let query = `UPDATE BankAccounts
+  SET IsClosed = 1
+  WHERE BankAccountId = '${req.query.BankAccountId}'` // SQL query
   WorkerQueryNoRes(query, req, res)
 });
 
