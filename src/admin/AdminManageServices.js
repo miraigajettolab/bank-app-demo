@@ -1,7 +1,7 @@
 //AdminManageServices
 import React from 'react';
 import AdminAddService from './AdminAddService'
-import AdminFindService from './AdminFindService'
+import AdminFindService from '../util/FindService'
 
 import FormControl from '@material-ui/core/FormControl';
 import TextField from '@material-ui/core/TextField';

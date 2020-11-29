@@ -35,6 +35,12 @@ export default function ButtonAppBar(props) {
                 Клиенты
             </Typography>
           </IconButton>
+          <IconButton edge="start" className={classes.menuButton} id="WorkerManageBankAccounts" color="inherit" aria-label="menu" onClick={e => props.go(e)}>
+            <GroupIcon id="WorkerManageBankAccounts" style={{marginRight: "5px"}}/>
+            <Typography id="WorkerManageBankAccounts"  variant="h6" className={classes.title}>
+                Счета
+            </Typography>
+          </IconButton>
             <Typography variant="h6" className={classes.title}>
             </Typography>
           <Button color="inherit" onClick={props.logout}>Выйти</Button>

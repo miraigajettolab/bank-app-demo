@@ -1,6 +1,7 @@
 import React from 'react';
 import WorkerAppBar from './WorkerAppBar'
 import WorkerManageClients from './WorkerManageClients'
+import WorkerManageBankAccounts from './WorkerManageBankAccounts'
 
 class Worker extends React.Component {
   constructor(props) {
@@ -51,6 +52,13 @@ class Worker extends React.Component {
                 token = {this.props.token}
             />
         break
+        case "WorkerManageBankAccounts":
+          subPanel = 
+          <WorkerManageBankAccounts 
+              serverURL = {this.props.serverURL} //passing the props from app.js
+              token = {this.props.token}
+          />
+      break
         default:
         break
     }

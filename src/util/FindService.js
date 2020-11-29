@@ -1,7 +1,7 @@
 import React from 'react';
 import FormLabel from '@material-ui/core/FormLabel';
 import { DataGrid } from '@material-ui/data-grid';
-import DataGridPlaceholder from "../util/DataGridPlaceholder"
+import DataGridPlaceholder from "./DataGridPlaceholder"
 import FormControl from '@material-ui/core/FormControl';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
@@ -9,7 +9,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 //PROPS: serverURL, token
 
-class AdminFindService  extends React.Component {
+class FindService  extends React.Component {
   constructor(props) {
 		super(props);
 		this.state = {
@@ -27,8 +27,7 @@ class AdminFindService  extends React.Component {
       method: 'GET',
       headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Auth-Token': this.props.token
+          'Content-Type': 'application/json'
       }
     })
     .then(response => response.json())
@@ -86,7 +85,7 @@ class AdminFindService  extends React.Component {
     table = <DataGridPlaceholder height={220} msg={`Нет данных 😰`}/>
     }
     return (
-      <div className="AdminFindService" >
+      <div className="FindService" >
         <div style = {{display: "flex", justifyContent: "space-between", marginBottom: "10px"}}>
         <FormControl fullWidth="true"  style={{flex: 4, marginRight: "10px"}}>    
           <TextField 
@@ -128,4 +127,4 @@ class AdminFindService  extends React.Component {
     );
   }
 }
-export default AdminFindService;
+export default FindService;

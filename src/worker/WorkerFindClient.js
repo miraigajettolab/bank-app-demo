@@ -21,6 +21,15 @@ class WorkerFindClient  extends React.Component {
   }
 
   processFindClient(){
+    this.props.selectionHandler([{
+      PassportNumber: "",
+      FullName: "",
+      BirthDate: new Date().toLocaleDateString(),
+      TaxId: "",
+      TelephoneNumber: "",
+      IncomePerMonth: "",
+      ClientId: ""
+    }])
     fetch(`${this.props.serverURL}/find-client?ClientId=${this.state.ClientId}&FullName=${this.state.FullName}&PassportNumber=${this.state.PassportNumber}`, 
       {
       method: 'GET',
