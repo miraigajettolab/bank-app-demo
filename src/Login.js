@@ -147,7 +147,7 @@ class Login extends React.Component {
     if ((this.props.accType === "client")){
         this.setState({
             showAlert:true, 
-            alertMsg: "ща", // do something 
+            alertMsg: "Обратитесь к оператору", // do something 
             alertSeverity: "info"
         })
     }
@@ -176,7 +176,7 @@ class Login extends React.Component {
     else if ((this.props.accType === "client")){
         this.setState({
             showAlert:true, 
-            alertMsg: "ща", // do something 
+            alertMsg: "Обратитесь к оператору", // do something 
             alertSeverity: "info"
         })
     }
