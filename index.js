@@ -645,6 +645,31 @@ app.get('/disable-bank-account', function (req, res) {
   WorkerQueryNoRes(query, req, res)
 });
 
+app.get('/add-transaction', function (req, res) {
+  let query = `
+  DECLARE @WorkerId AS INT
+  SET @WorkerId = (SELECT WorkerId FROM Workers WHERE AuthId = (SELECT AuthId FROM Auth Where PasswordHash = '${req.header('Auth-Token')}'))
+  INSERT INTO Transactions(SourceAccountId, TransferAccountId, Total, Currency, Timestamp, AuthorisedWorkerId, Status)
+  VALUES (${req.query.SourceAccountId.length > 0 && req.query.SourceAccountId !== undefined && req.query.SourceAccountId.toUpperCase() !== "NULL" ? "'" + req.query.SourceAccountId + "'" : "NULL"},${req.query.TransferAccountId.length > 0 && req.query.TransferAccountId !== undefined && req.query.TransferAccountId.toUpperCase() !== "NULL" ? "'" + req.query.TransferAccountId + "'" : "NULL"}, '${req.query.Total}', '${req.query.Currency}', CURRENT_TIMESTAMP, @WorkerId, '0');` // SQL query
+  
+  if(req.query.SourceAccountId.length > 0 && req.query.SourceAccountId.toUpperCase() !== "NULL"  && (!Number.isInteger(+req.query.SourceAccountId) || parseInt(req.query.SourceAccountId) <= 0)){
+    res.end(`{"error":"Предоставьте корректный номер счета с которого будут списаны средства"}`)
+  }
+  else if(req.query.TransferAccountId.length > 0 && req.query.TransferAccountId.toUpperCase() !== "NULL"  && (!Number.isInteger(+req.query.TransferAccountId) || parseInt(req.query.TransferAccountId) <= 0)){
+    res.end(`{"error":"Предоставьте корректный номер счета на который поступят средства"}`)
+  }
+  else if(req.query.SourceAccountId.length === 0 && req.query.TransferAccountId.length === 0){
+    res.end(`{"error":"Необходимо указать хотя бы один номер счета!"}`)
+  }
+  else if(req.query.Total.length === 0 || (isNaN(parseFloat(req.query.Total)) && isFinite(req.query.Total)) || parseFloat(req.query.Total) < 0){
+    res.end(`{"error":"Введите корректную сумму (неотрицательное вещественное число)"}`)
+  }
+  else {
+    //console.log(query)
+    WorkerQueryNoRes(query, req, res)
+  }
+});
+
 /*
 app.get('/complex/', function (req, res) {
   let query = `` // SQL query
