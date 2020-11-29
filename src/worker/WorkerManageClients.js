@@ -3,6 +3,7 @@ import WorkerAddClient from './WorkerAddClient'
 import WorkerFindClient from './WorkerFindClient'
 import WorkerModifyClient from './WorkerModifyClient'
 import WorkerModifyClientAuth from './WorkerModifyClientAuth'
+import ViewClientData from './ViewClientData'
 
 import FormControl from '@material-ui/core/FormControl';
 import TextField from '@material-ui/core/TextField';
@@ -197,6 +198,13 @@ class WorkerManageClients  extends React.Component {
             }
           </div>
         </div>
+        Я ВНИЗУ
+        <ViewClientData
+          serverURL = {this.props.serverURL} //passing the props from Worker.js
+          token = {this.props.token}
+          ClientId = {this.state.selectedClientData.ClientId}
+          IsWorker = {true}
+        />
       </div>
     );
   }
