@@ -401,8 +401,15 @@ AS
 	END;
 	ELSE
 	BEGIN
-		INSERT INTO Clients(PassportNumber,FullName,BirthDate, AccountCreatorId, TaxId, TelephoneNumber, IncomePerMonth)
-		VALUES (@PassportNumber, @FullName, @BirthDate, @AccountCreatorId, @TaxId, @TelephoneNumber, @IncomePerMonth);
+		Declare @PromiseLogin as varchar(64)
+		Declare @PromiseHash as varchar(64)
+		Set @PromiseLogin = (SELECT CONVERT(varchar(64),LEFT(REPLACE(NEWID(),'-',''),64)))--Random data
+		Set @PromiseHash = (SELECT CONVERT(varchar(64),LEFT(REPLACE(NEWID(),'-',''),64)))--Random data
+		insert into Auth(Login,PasswordHash) Values (@PromiseLogin, @PromiseHash);
+		Declare @AuthId as int
+		set @AuthId = SCOPE_IDENTITY()
+		INSERT INTO Clients(PassportNumber,FullName,BirthDate, AccountCreatorId, TaxId, TelephoneNumber, AuthId, IncomePerMonth)
+		VALUES (@PassportNumber, @FullName, @BirthDate, @AccountCreatorId, @TaxId, @TelephoneNumber, @AuthId, @IncomePerMonth);
 	END;
 GO
 /****** Object:  StoredProcedure [dbo].[Add_Worker]    Script Date: 2020/11/18 19:58:23 ******/
@@ -431,18 +438,6 @@ AS
 	--the real password's hash is stored, promise is fulfilled, circular dependency is resolved. And everyone lived happily ever after...
 	
 	commit
-GO
-/****** Object:  StoredProcedure [dbo].[Change_Auth_Client]    Script Date: 2020/11/18 19:58:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-create procedure [dbo].[Change_Auth_Client](@ClientId as int, @Login as varchar(80), @Password as varchar(80))
-as
-Update Auth
-set Login = @Login, PasswordHash = CONVERT(varchar(64), HASHBYTES('SHA2_256', @Password + '' + CONVERT(varchar(10), @ClientId)),2)
-from Clients as cl 
-where cl.AuthId = Auth.AuthId and cl.ClientId = @ClientId
 GO
 /****** Object:  StoredProcedure [dbo].[Add_BankAccount]    Script Date: 2020/11/22 2:43:45 ******/
 SET ANSI_NULLS ON
