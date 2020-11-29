@@ -119,6 +119,86 @@ function AdminQuery(sqlQuery, req, res) {
   connection.execSql(request);
 }
 
+function WorkerQueryNoRes(sqlQuery, req, res) {
+  if (!req.header('Auth-Token')) {
+    err = "You have to provide a token as 'Auth-Token' header to use this method"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  if (!sqlQuery) {
+    err = "You have to provide a query"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  const request = new Request(
+    `IF EXISTS(SELECT * FROM Auth WHERE PasswordHash = '${req.header('Auth-Token')}' AND EXISTS(SELECT * FROM Workers WHERE Auth.AuthId = Workers.AuthId))
+    BEGIN
+      ${sqlQuery}
+    END
+    ELSE
+    BEGIN
+      (SELECT 'AUTH_ERROR')
+    END`, // SQL query
+    (err) => {
+      if (err) {
+        console.error("ERR:" + err.message);
+        res.end(`{"error":${JSON.stringify(err.message)}}`)
+      } else {	
+        res.end(`{"res":"success"}`) // Final response
+      }
+    }
+  );
+  connection.execSql(request);
+}
+
+
+function WorkerQuery(sqlQuery, req, res) {
+  if (!req.header('Auth-Token')) {
+    err = "You have to provide a token as 'Auth-Token' header to use this method"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  if (!sqlQuery) {
+    err = "You have to provide a query"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  const request = new Request(
+    `IF EXISTS(SELECT * FROM Auth WHERE PasswordHash = '${req.header('Auth-Token')}' AND EXISTS(SELECT * FROM Workers WHERE Auth.AuthId = Workers.AuthId))
+    BEGIN
+      ${sqlQuery}
+    END
+    ELSE
+    BEGIN
+      (SELECT 'AUTH_ERROR')
+    END`, // SQL query
+    (err) => {
+      if (err) {
+        console.error("ERR:" + err.message);
+        res.end(`{"error":${JSON.stringify(err.message)}}`)
+      }
+    }
+  );
+  request.on('doneInProc', function (rowCount, more, rows) { // This event is called after the request if completed
+      // There's too much metadata so we filter some of it out
+      let filtered = "["
+      rows.forEach(row => {
+          filtered += "{"
+          row.forEach(col => {
+              filtered += `"${col.metadata.colName}":"${col.value}",`
+          })
+          filtered = filtered.slice(0, -1) // Removing trailing comma
+          filtered += "},"
+      })
+      filtered = filtered.slice(0, -1) // Removing trailing comma
+      filtered += "]"
+      if (rowCount != undefined) {
+        res.end(`{"count": ${JSON.stringify(rowCount)}, "data": ${rowCount == 0 ? "[]" : filtered}}`) // Final response
+      }
+  });
+  connection.execSql(request);
+}
+
 function FreeQuery(sqlQuery, req, res) {
   if (!sqlQuery) {
     err = "You have to provide a query"
@@ -418,6 +498,70 @@ app.get('/disable-service', function (req, res) {
   SET IsDisabled = 1
   WHERE ServiceId = '${req.query.ServiceId}'` // SQL query
   AdminQueryNoRes(query, req, res)
+});
+
+
+app.get('/find-client', function (req, res) {
+  let query = `SELECT * FROM Clients where ClientId = '${req.query.ClientId}' or FullName = N'${req.query.FullName}' or PassportNumber = '${req.query.PassportNumber}'` // SQL query
+  WorkerQuery(query, req, res)
+});
+
+app.get('/add-client', function (req, res) {
+  let query = `
+  DECLARE @WorkerId AS INT
+  SET @WorkerId = (SELECT WorkerId FROM Workers WHERE AuthId = (SELECT AuthId FROM Auth Where PasswordHash = '${req.header('Auth-Token')}'))
+  EXEC Add_Client '${req.query.PassportNumber}', N'${req.query.FullName}', '${req.query.BirthDate}', @WorkerId , ${req.query.TaxId.length > 0 ? "'" + req.query.TaxId + "'" : "NULL"}, ${req.query.TelephoneNumber.length > 0 ? "'" + req.query.TelephoneNumber + "'" : "NULL"}, ${req.query.IncomePerMonth.length > 0 ? "'" + req.query.IncomePerMonth + "'" : "NULL"};` // SQL query
+  if(!req.query.PassportNumber || !Number.isInteger(+req.query.PassportNumber) || req.query.PassportNumber.length != 10 ||  req.query.PassportNumber < 1 || req.query.PassportNumber[0] == '0'){
+    res.end(`{"error":"Введите корректный номер паспорта (10 цифр)"}`)
+  }
+  else if(!req.query.FullName){
+    res.end(`{"error":"Введите ФИО"}`)
+  }
+  else if(req.query.TaxId.length > 0 && (!Number.isInteger(+req.query.TaxId) || req.query.TaxId.length != 12 || req.query.TaxId[0] == '0')){
+    res.end(`{"error":"Введите корректный ИНН (12 цифр)"}`)
+  }
+  else if(req.query.IncomePerMonth.length > 0 && ((isNaN(parseFloat(req.query.IncomePerMonth)) && isFinite(req.query.IncomePerMonth)) || parseFloat(req.query.IncomePerMonth) < 0)){
+    res.end(`{"error":"Введите корректное количество доходов (неотрицательное вещественное число)"}`)
+  }
+  else {
+    //console.log(query)
+    WorkerQueryNoRes(query, req, res)
+  }
+});
+
+app.get('/alter-client', function (req, res) {
+  let query = `UPDATE Clients
+  SET PassportNumber = '${req.query.PassportNumber}', FullName = N'${req.query.FullName}', BirthDate='${req.query.BirthDate}', 
+  TaxId = ${req.query.TaxId.length > 0 && req.query.TaxId !== undefined && req.query.TaxId.toUpperCase() !== "NULL" ? "'" + req.query.TaxId + "'" : "NULL"}, 
+  TelephoneNumber = ${req.query.TelephoneNumber.length > 0 && req.query.TelephoneNumber !== undefined && req.query.TelephoneNumber.toUpperCase() !== "NULL" ? "'" + req.query.TelephoneNumber + "'" : "NULL"}, 
+  IncomePerMonth = ${req.query.IncomePerMonth.length > 0 && req.query.IncomePerMonth !== undefined && req.query.IncomePerMonth.toUpperCase() !== "NULL" ? "'" + req.query.IncomePerMonth + "'" : "NULL"}
+  WHERE ClientId = '${req.query.ClientId}'` // SQL query
+  if(!req.query.ClientId || !Number.isInteger(+req.query.ClientId) || req.query.ClientId < 1){
+    res.end('{"error":"Введите корректный Client Id"}')
+  }
+  else if(!req.query.PassportNumber || !Number.isInteger(+req.query.PassportNumber) || req.query.PassportNumber.length != 10 ||  req.query.PassportNumber < 1 || req.query.PassportNumber[0] == '0'){
+    res.end(`{"error":"Введите корректный номер паспорта (10 цифр)"}`)
+  }
+  else if(!req.query.FullName){
+    res.end(`{"error":"Введите ФИО"}`)
+  }
+  else if(req.query.TaxId.length > 0 && req.query.TaxId.toUpperCase() !== "NULL"  && (!Number.isInteger(+req.query.TaxId) || req.query.TaxId.length != 12 || req.query.TaxId[0] == '0')){
+    res.end(`{"error":"Введите корректный ИНН (12 цифр)"}`)
+  }
+  else if(req.query.IncomePerMonth.length > 0 && req.query.IncomePerMonth.toUpperCase() !== "NULL"  && ((isNaN(parseFloat(req.query.IncomePerMonth)) && isFinite(req.query.IncomePerMonth)) || parseFloat(req.query.IncomePerMonth) < 0)){
+    res.end(`{"error":"Введите корректное количество доходов (неотрицательное вещественное число)"}`)
+  }
+  else {
+    //console.log(query)
+    WorkerQueryNoRes(query, req, res)
+  }
+});
+
+app.get('/delete-client', function (req, res) {
+  let query = `UPDATE Clients
+  SET PassportNumber = 'DELETED', FullName = 'DELETED', BirthDate='1970-01-01', TaxId = NULL, TelephoneNumber = NULL, IncomePerMonth = NULL, AuthId = NULL
+  WHERE ClientId = '${req.query.ClientId}'` // SQL query
+  WorkerQueryNoRes(query, req, res)
 });
 
 /*
