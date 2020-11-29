@@ -11,8 +11,9 @@ class WorkerManageTransactions  extends React.Component {
   constructor(props) {
 		super(props);
 		this.state = {
-            Total : "",
-
+      SourceAccountId: this.props.SourceAccountId,
+      TransferAccountId: this.props.TransferAccountId,
+      Total : "",
     };
     this.changeHandler = this.changeHandler.bind(this)
     this.processAddTransaction = this.processAddTransaction.bind(this)
@@ -48,7 +49,7 @@ class WorkerManageTransactions  extends React.Component {
     type === "checkbox" ? this.setState({[name]:checked}) : this.setState({[name]:value})
   }
 
-  render() { 
+  render() {
     return (
       <div className="WorkerManageTransactions" >
         <div style = {{display: "flex", justifyContent: "space-between", marginBottom: "10px"}}>

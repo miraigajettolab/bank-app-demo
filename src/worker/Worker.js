@@ -2,15 +2,19 @@ import React from 'react';
 import WorkerAppBar from './WorkerAppBar'
 import WorkerManageClients from './WorkerManageClients'
 import WorkerManageBankAccounts from './WorkerManageBankAccounts'
+import WorkerManageTransactions from './WorkerManageTransactions'
 
 class Worker extends React.Component {
   constructor(props) {
 		super(props);
 		this.state = {
-      activeSubPanel: "WorkerManageClients"
+      activeSubPanel: "WorkerManageClients",
+      SourceAccountId: "",
+      TransferAccountId: "",
     };
     this.GetIt = this.GetIt.bind(this)
     this.go = this.go.bind(this)
+    this.goToTransations = this.goToTransations.bind(this)
   }
 
   GetIt(handle, addToken = false) {
@@ -35,6 +39,14 @@ class Worker extends React.Component {
     this.setState({activeSubPanel:id})
 }
 
+  goToTransations(data) {
+    this.setState({
+      activeSubPanel: "WorkerManageTransactions",
+      SourceAccountId: data.SourceAccountId,
+      TransferAccountId: data.TransferAccountId,
+    });
+  }
+
   componentDidMount() {
     //this.GetIt("https://bank-api.azurewebsites.net/query?table=Exchange&count=20", true)
     //this.GetIt(`http://localhost:5000/complex/1?timestampStart=${this.state.timestampStart}&timestampEnd=${this.state.timestampEnd}`, true)
@@ -57,8 +69,18 @@ class Worker extends React.Component {
           <WorkerManageBankAccounts 
               serverURL = {this.props.serverURL} //passing the props from app.js
               token = {this.props.token}
+              goToTransations = {this.goToTransations}
           />
-      break
+        break
+        case "WorkerManageTransactions":
+          subPanel = 
+          <WorkerManageTransactions 
+              serverURL = {this.props.serverURL} //passing the props from app.js
+              token = {this.props.token}
+              SourceAccountId = {this.state.SourceAccountId}
+              TransferAccountId = {this.state.TransferAccountId}
+          />
+        break
         default:
         break
     }

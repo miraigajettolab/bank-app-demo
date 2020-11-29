@@ -30,6 +30,8 @@ class WorkerManageBankAccounts  extends React.Component {
     this.changeHandler = this.changeHandler.bind(this)
     this.processDisable = this.processDisable.bind(this)
     this.processEnable = this.processEnable.bind(this)
+    this.processSource = this.processSource.bind(this)
+    this.processTransfer = this.processTransfer.bind(this)
     this.selectionHandlerBankAccount = this.selectionHandlerBankAccount.bind(this)
     this.selectionHandlerClient = this.selectionHandlerClient.bind(this)
     this.selectionHandlerServices = this.selectionHandlerServices.bind(this)
@@ -123,7 +125,23 @@ class WorkerManageBankAccounts  extends React.Component {
     this.setState({"selectedServicesData":id[0]})
   }
 
-  render() {         
+  processSource() {
+    let data = {
+      SourceAccountId: this.state.selectedBankAccountData.BankAccountId,
+      TransferAccountId: ""
+    }
+    this.props.goToTransations(data)
+  }
+
+  processTransfer(){
+    let data = {
+      SourceAccountId: "",
+      TransferAccountId: this.state.selectedBankAccountData.BankAccountId
+    }
+    this.props.goToTransations(data)
+  }
+
+  render() {     
     return (
       <div className="WorkerManageBankAccounts" >
         <div style = {{display: "flex", justifyContent: "space-between", marginLeft: "40px", marginRight: "40px", marginTop: "40px"}}>
@@ -173,6 +191,27 @@ class WorkerManageBankAccounts  extends React.Component {
                   disabled = {(this.state.selectedBankAccountData.BankAccountId === "") || (this.state.selectedClientData.ClientId !== this.state.selectedBankAccountData.ClientId)  ? true: false} 
                   onClick={this.processDisable}>
                     Заблокировать
+                </Button>         
+              </FormControl>
+            </div>
+            <div style = {{display: "flex", justifyContent: "space-between", marginBottom: "10px"}}>
+              <FormControl fullWidth="true"  style={{flex: 4}}>
+                <Button 
+                  style={{marginRight: "10px"}}
+                  variant="contained"
+                  color="secondary"
+                  disabled = {(this.state.selectedBankAccountData.IsDebit !== "true") || (this.state.selectedBankAccountData.BankAccountId === "") || (this.state.selectedClientData.ClientId !== this.state.selectedBankAccountData.ClientId) ? true: false} 
+                  onClick={this.processSource}>
+                    Перевести с
+                </Button>         
+              </FormControl>
+              <FormControl fullWidth="true"  style={{flex: 4}}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled = {(this.state.selectedBankAccountData.BankAccountId === "") || (this.state.selectedClientData.ClientId !== this.state.selectedBankAccountData.ClientId)  ? true: false} 
+                  onClick={this.processTransfer}>
+                    Перевести на
                 </Button>         
               </FormControl>
             </div>

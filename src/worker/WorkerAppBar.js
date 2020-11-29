@@ -5,9 +5,9 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
-import DeveloperBoardIcon from '@material-ui/icons/DeveloperBoard';
-import TuneIcon from '@material-ui/icons/Tune';
+import AccountBalanceWalletIcon from '@material-ui/icons/AccountBalanceWallet';
 import GroupIcon from '@material-ui/icons/Group';
+import SendIcon from '@material-ui/icons/Send';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -36,9 +36,15 @@ export default function ButtonAppBar(props) {
             </Typography>
           </IconButton>
           <IconButton edge="start" className={classes.menuButton} id="WorkerManageBankAccounts" color="inherit" aria-label="menu" onClick={e => props.go(e)}>
-            <GroupIcon id="WorkerManageBankAccounts" style={{marginRight: "5px"}}/>
+            <AccountBalanceWalletIcon id="WorkerManageBankAccounts" style={{marginRight: "5px"}}/>
             <Typography id="WorkerManageBankAccounts"  variant="h6" className={classes.title}>
                 Счета
+            </Typography>
+          </IconButton>
+          <IconButton edge="start" className={classes.menuButton} id="WorkerManageTransactions" color="inherit" aria-label="menu" onClick={e => props.go(e)}>
+            <SendIcon id="WorkerManageTransactions" style={{marginRight: "5px"}}/>
+            <Typography id="WorkerManageTransactions"  variant="h6" className={classes.title}>
+                Транзакции
             </Typography>
           </IconButton>
             <Typography variant="h6" className={classes.title}>
