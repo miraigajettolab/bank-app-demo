@@ -128,7 +128,8 @@ class WorkerManageBankAccounts  extends React.Component {
   processSource() {
     let data = {
       SourceAccountId: this.state.selectedBankAccountData.BankAccountId,
-      TransferAccountId: ""
+      TransferAccountId: "",
+      Currency: this.state.selectedBankAccountData.Currency,
     }
     this.props.goToTransations(data)
   }
@@ -136,7 +137,8 @@ class WorkerManageBankAccounts  extends React.Component {
   processTransfer(){
     let data = {
       SourceAccountId: "",
-      TransferAccountId: this.state.selectedBankAccountData.BankAccountId
+      TransferAccountId: this.state.selectedBankAccountData.BankAccountId,
+      Currency: this.state.selectedBankAccountData.Currency,
     }
     this.props.goToTransations(data)
   }

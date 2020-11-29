@@ -11,6 +11,7 @@ class Worker extends React.Component {
       activeSubPanel: "WorkerManageClients",
       SourceAccountId: "",
       TransferAccountId: "",
+      Currency: "RUB",
     };
     this.GetIt = this.GetIt.bind(this)
     this.go = this.go.bind(this)
@@ -44,6 +45,7 @@ class Worker extends React.Component {
       activeSubPanel: "WorkerManageTransactions",
       SourceAccountId: data.SourceAccountId,
       TransferAccountId: data.TransferAccountId,
+      Currency: data.Currency,
     });
   }
 
@@ -79,6 +81,7 @@ class Worker extends React.Component {
               token = {this.props.token}
               SourceAccountId = {this.state.SourceAccountId}
               TransferAccountId = {this.state.TransferAccountId}
+              Currency = {this.state.Currency}
           />
         break
         default:
