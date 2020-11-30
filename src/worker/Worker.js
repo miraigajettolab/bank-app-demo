@@ -3,6 +3,7 @@ import WorkerAppBar from './WorkerAppBar'
 import WorkerManageClients from './WorkerManageClients'
 import WorkerManageBankAccounts from './WorkerManageBankAccounts'
 import WorkerManageTransactions from './WorkerManageTransactions'
+import ViewServices from '../util/ViewServices'
 
 class Worker extends React.Component {
   constructor(props) {
@@ -82,6 +83,13 @@ class Worker extends React.Component {
               SourceAccountId = {this.state.SourceAccountId}
               TransferAccountId = {this.state.TransferAccountId}
               Currency = {this.state.Currency}
+          />
+        break
+        case "ViewServices":
+          subPanel = 
+          <ViewServices 
+              serverURL = {this.props.serverURL} //passing the props from app.js
+              token = {this.props.token}
           />
         break
         default:

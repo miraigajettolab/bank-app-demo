@@ -8,6 +8,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DeveloperBoardIcon from '@material-ui/icons/DeveloperBoard';
 import TuneIcon from '@material-ui/icons/Tune';
 import GroupIcon from '@material-ui/icons/Group';
+import FindInPageIcon from '@material-ui/icons/FindInPage';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -44,6 +45,12 @@ export default function ButtonAppBar(props) {
           <IconButton edge="start" className={classes.menuButton} id="AdminManageServices" color="inherit" aria-label="menu" onClick={e => props.go(e)}>
             <TuneIcon id="AdminManageServices" style={{marginRight: "5px"}}/>
             <Typography id="AdminManageServices"  variant="h6" className={classes.title}>
+                Управление Услугами
+            </Typography>
+          </IconButton>
+          <IconButton edge="start" className={classes.menuButton} id="ViewServices" color="inherit" aria-label="menu" onClick={e => props.go(e)}>
+            <FindInPageIcon id="ViewServices" style={{marginRight: "5px"}}/>
+            <Typography id="ViewServices"  variant="h6" className={classes.title}>
                 Услуги
             </Typography>
           </IconButton>

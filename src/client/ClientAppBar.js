@@ -7,6 +7,7 @@ import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import SendIcon from '@material-ui/icons/Send';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
+import FindInPageIcon from '@material-ui/icons/FindInPage';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -38,6 +39,12 @@ export default function ButtonAppBar(props) {
             <SendIcon id="ClientManageTransactions" style={{marginRight: "5px"}}/>
             <Typography id="ClientManageTransactions"  variant="h6" className={classes.title}>
                 Транзакции
+            </Typography>
+          </IconButton>
+          <IconButton edge="start" className={classes.menuButton} id="ViewServices" color="inherit" aria-label="menu" onClick={e => props.go(e)}>
+            <FindInPageIcon id="ViewServices" style={{marginRight: "5px"}}/>
+            <Typography id="ViewServices"  variant="h6" className={classes.title}>
+                Услуги
             </Typography>
           </IconButton>
             <Typography variant="h6" className={classes.title}>

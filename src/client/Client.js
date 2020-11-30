@@ -3,6 +3,7 @@ import ClientAppBar from './ClientAppBar'
 import ClientManageTransactions from './ClientManageTransactions'
 import ViewClientData from '../worker/ViewClientData'
 import Typography from '@material-ui/core/Typography';
+import ViewServices from '../util/ViewServices'
 
 class Client extends React.Component {
   constructor(props) {
@@ -73,6 +74,13 @@ class Client extends React.Component {
               SourceAccountId = {this.state.SourceAccountId}
               TransferAccountId = {this.state.TransferAccountId}
               Currency = {this.state.Currency}
+          />
+        break
+        case "ViewServices":
+          subPanel = 
+          <ViewServices 
+              serverURL = {this.props.serverURL} //passing the props from app.js
+              token = {this.props.token}
           />
         break
         default:
