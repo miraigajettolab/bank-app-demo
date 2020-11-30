@@ -1,12 +1,14 @@
 import React from 'react';
 import ClientAppBar from './ClientAppBar'
 import ClientManageTransactions from './ClientManageTransactions'
+import ViewClientData from '../worker/ViewClientData'
+import Typography from '@material-ui/core/Typography';
 
 class Client extends React.Component {
   constructor(props) {
 		super(props);
 		this.state = {
-      activeSubPanel: "ClientManageTransactions",
+      activeSubPanel: "ClientViewAccount",
       SourceAccountId: "",
       TransferAccountId: "",
       Currency: "RUB",
@@ -47,6 +49,22 @@ class Client extends React.Component {
   render() {
     let subPanel
     switch(this.state.activeSubPanel) {
+        case "ClientViewAccount":
+          subPanel = 
+          <div style = {{margin: "40px"}}>
+            <Typography 
+              variant="h4" 
+              style = {{marginBottom: "10px"}}
+            >  
+              Мои Данные:
+            </Typography> 
+            <ViewClientData
+            serverURL = {this.props.serverURL} //passing the props from Worker.js
+            token = {this.props.token}
+            IsWorker = {false}
+            />
+          </div>
+        break
         case "ClientManageTransactions":
           subPanel = 
           <ClientManageTransactions 

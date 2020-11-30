@@ -18,10 +18,10 @@ class ViewClientData  extends React.Component {
 		super(props);
 		this.state = {
         canSend: true,
-        ClientId: this.props.ClientId ? this.props.ClientId : "",
+        ClientId: this.props.ClientId ? this.props.ClientId : null,
         IsWorker: this.props.IsWorker,
         queryLimit: 3,
-        maxCount: 10
+        maxCount: 100
     };
 
     this.GetIt = this.GetIt.bind(this)
