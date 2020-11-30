@@ -239,7 +239,7 @@ GO
 --4. Транзакции клиента
 CREATE VIEW [dbo].[ClientTransactionsData] as 
 SELECT ClientId, TransactionId, SourceAccountId, TransferAccountId, Transactions.Total, Timestamp, Transactions.Currency, AuthorisedWorkerId, Status FROM Transactions
-JOIN BankAccounts ON Transactions.TransferAccountId = BankAccounts.BankAccountId
+JOIN BankAccounts ON Transactions.TransferAccountId = BankAccounts.BankAccountId OR Transactions.SourceAccountId = BankAccounts.BankAccountId
 GO
 /****** Object:  View [dbo].[TransactionsData]    Script Date: 2020/11/18 19:58:23 ******/
 SET ANSI_NULLS ON
