@@ -42,7 +42,16 @@ class AdminManageWorkers  extends React.Component {
 
   processUpdateToAdd(timeout = 0){
     setTimeout(() => {
-      this.setState({"mode":"add"});
+      this.setState({
+        selectedWorkerData: {
+          PassportNumber: "",
+          FullName: "",
+          BirthDate: "",
+          TaxId: "",
+          CriminalRecords: "",
+          WorkerId: ""
+        },
+        "mode":"add"});
     }, timeout)
   }
 
