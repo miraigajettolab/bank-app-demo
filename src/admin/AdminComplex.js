@@ -24,7 +24,7 @@ class AdminComplex  extends React.Component {
       },
       currency: "RUB",
       customQuery: "",
-      queryLimit: 8,
+      queryLimit: 10,
       maxCount: 10
     };
 
@@ -86,6 +86,12 @@ class AdminComplex  extends React.Component {
         break
         case 8:
             this.GetIt(`${this.props.serverURL}/complex/2?day=${this.state.bd.day}&month=${this.state.bd.month}&count=${this.state.maxCount}`, "c2", 8, true)
+        break
+        case 9:
+          this.GetIt(`${this.props.serverURL}/complex/11?currency=${this.state.currency}&count=${this.state.maxCount}`, "c11", 9 , true)
+        break
+        case 10:
+          this.GetIt(`${this.props.serverURL}/complex/12?currency=${this.state.currency}&count=${this.state.maxCount}`, "c12", 10 , true)
         break
         default:
         break
@@ -245,6 +251,42 @@ class AdminComplex  extends React.Component {
       } else {
         tables.c7 = <DataGridPlaceholder height={400} msg={`Нет данных 😣`}/>
       }
+      if (this.state.c11 !== undefined && this.state.c11.count > 0) {
+        tables.c11 = <div style={{ height: 400, width: '100%'}}>
+            <FormLabel component="legend" style={{marginBottom: "10px"}}>{`Топ клиентов по накоплениям в валюте: ${this.state.currency}`}</FormLabel>
+            <DataGrid rows={
+            this.state.c11.data.map( row => {
+                return {'id':row.ClientId, 'Sum': row.Sum, 'FullName': row.FullName }
+            })
+        } columns={
+            [
+                { field: 'id', headerName: 'ID',  flex: 0.5},
+                { field: 'FullName', headerName: 'ФИО', flex: 1},
+                { field: 'Sum', headerName: 'Сумма', flex: 1},
+                { flex: 0.1}
+            ]
+        } pageSize={5}/></div>
+      } else {
+        tables.c11 = <DataGridPlaceholder height={400} msg={`Нет данных 🤕`}/>
+      }
+      if (this.state.c12 !== undefined && this.state.c12.count > 0) {
+        tables.c12 = <div style={{ height: 400, width: '100%'}}>
+            <FormLabel component="legend" style={{marginBottom: "10px"}}>{`Топ клиентов по долгам в валюте: ${this.state.currency}`}</FormLabel>
+            <DataGrid rows={
+            this.state.c12.data.map( row => {
+                return {'id':row.ClientId, 'Sum': row.Sum, 'FullName': row.FullName }
+            })
+        } columns={
+            [
+                { field: 'id', headerName: 'ID',  flex: 0.5},
+                { field: 'FullName', headerName: 'ФИО', flex: 1},
+                { field: 'Sum', headerName: 'Сумма', flex: 1},
+                { flex: 0.1}
+            ]
+        } pageSize={5}/></div>
+      } else {
+        tables.c12 = <DataGridPlaceholder height={400} msg={`Нет данных 🤕`}/>
+      }
     return (
       <div className="AdminComplex ">
         <div style = {{display: "flex", marginLeft: "10%", marginRight: "10%", marginTop: "10px"}}>
@@ -363,6 +405,18 @@ class AdminComplex  extends React.Component {
                 style = {{width: "50%", marginLeft: "5px"}}
             >
                 {tables.c2}
+            </div>
+          </div>
+          <div style = {{display: "flex", justifyContent: "space-between", marginBottom: "40px"}}>
+            <div
+                style = {{width: "50%", marginRight: "5px"}} 
+            >
+                {tables.c11}
+            </div>
+            <div
+                style = {{width: "50%", marginLeft: "5px"}}
+            >
+                {tables.c12}
             </div>
           </div>
         </div>                   
