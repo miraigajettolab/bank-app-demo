@@ -833,7 +833,7 @@ app.get('/add-transaction-client', function (req, res) {
 
 /* GET result of some SQL query */
 app.get('/view-services', function (req, res) {
-  let query = `SELECT * FROM ServicesData WHERE IsDisabled = '0'` // SQL query
+  let query = `SELECT TOP(${req.query.count}) * FROM ServicesData WHERE IsDisabled = '0'` // SQL query
   FreeQuery(query, req, res)
 });
 
