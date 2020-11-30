@@ -498,7 +498,7 @@ app.get('/find-worker', function (req, res) {
 
 app.get('/alter-worker', function (req, res) {
   let query = `UPDATE Workers
-  SET PassportNumber = '${req.query.PassportNumber}', FullName = N'${req.query.FullName}', BirthDate='${req.query.BirthDate}', TaxId = '${req.query.TaxId}', CriminalRecords = ${req.query.CriminalRecords}
+  SET PassportNumber = '${req.query.PassportNumber}', FullName = N'${req.query.FullName}', BirthDate='${req.query.BirthDate}', TaxId = '${req.query.TaxId}', CriminalRecords = ${req.query.CriminalRecords.length > 0 && req.query.CriminalRecords !== undefined && req.query.CriminalRecords.toUpperCase() !== "NULL" ? "N'" + req.query.CriminalRecords + "'" : "NULL"}
   WHERE WorkerId = '${req.query.WorkerId}'` // SQL query
   if(!req.query.WorkerId || !Number.isInteger(+req.query.WorkerId) || req.query.WorkerId < 1){
     res.end('{"error":"Введите корректный Worker Id"}')
@@ -550,7 +550,10 @@ app.get('/find-service', function (req, res) {
 
 app.get('/add-service', function (req, res) {
   let query = `INSERT [dbo].[Services] ([Months], [Interest], [IsDebit], [LoanOverdueTerms], [EarlyWithdrawalTerms], [Currency], [RequiredIncome], [Description], [IsDisabled]) 
-  VALUES ('${req.query.Months}', '${req.query.Interest}', '${req.query.IsDebit}', N'${req.query.LoanOverdueTerms}', N'${req.query.EarlyWithdrawalTerms}', '${req.query.Currency}', '${req.query.RequiredIncome}', N'${req.query.Description}', 0)` // SQL query
+  VALUES ('${req.query.Months}', '${req.query.Interest}', '${req.query.IsDebit}', 
+  ${req.query.LoanOverdueTerms.length > 0 && req.query.LoanOverdueTerms !== undefined && req.query.LoanOverdueTerms.toUpperCase() !== "NULL" ? "N'" + req.query.LoanOverdueTerms + "'" : "NULL"}, 
+  ${req.query.EarlyWithdrawalTerms.length > 0 && req.query.EarlyWithdrawalTerms !== undefined && req.query.EarlyWithdrawalTerms.toUpperCase() !== "NULL" ? "N'" + req.query.EarlyWithdrawalTerms + "'" : "NULL"}, 
+  '${req.query.Currency}', '${req.query.RequiredIncome}', N'${req.query.Description}', 0)` // SQL query
   if(!req.query.Months || !Number.isInteger(+req.query.Months) || req.query.Months < 1){
     res.end(`{"error":"Введите корректное количество месяцев (натуральное число)"}`)
   }
@@ -796,7 +799,7 @@ app.get('/view-client-transactions-data', function (req, res) {
   else if (req.query.IsWorker === "false") {
     query = `DECLARE @ClientId AS INT
     SET @ClientId = (SELECT ClientId FROM Clients WHERE AuthId = (SELECT AuthId FROM Auth Where PasswordHash = '${req.header('Auth-Token')}'))
-    SELECT TOP(${req.query.count}) * FROM ClientTransactionsData WHERE ClientId = @ClientId`
+    SELECT DISTINCT TOP(${req.query.count}) * FROM ClientTransactionsData WHERE ClientId = @ClientId`
     ClientQuery(query, req, res)
   }
   else {
