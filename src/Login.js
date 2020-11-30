@@ -217,7 +217,7 @@ class Login extends React.Component {
           <TextField 
             style={{marginBottom: "10px"}}
             label="Пароль"
-            //type="password"
+            type="password"
             variant="outlined"
             name = "password"
             value = {this.props.password}

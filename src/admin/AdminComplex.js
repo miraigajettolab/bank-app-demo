@@ -267,7 +267,7 @@ class AdminComplex  extends React.Component {
             ]
         } pageSize={5}/></div>
       } else {
-        tables.c11 = <DataGridPlaceholder height={400} msg={`Нет данных 🤕`}/>
+        tables.c11 = <DataGridPlaceholder height={400} msg={`Нет данных ❌`}/>
       }
       if (this.state.c12 !== undefined && this.state.c12.count > 0) {
         tables.c12 = <div style={{ height: 400, width: '100%'}}>
@@ -285,7 +285,7 @@ class AdminComplex  extends React.Component {
             ]
         } pageSize={5}/></div>
       } else {
-        tables.c12 = <DataGridPlaceholder height={400} msg={`Нет данных 🤕`}/>
+        tables.c12 = <DataGridPlaceholder height={400} msg={`Нет данных ⚠️`}/>
       }
     return (
       <div className="AdminComplex ">
