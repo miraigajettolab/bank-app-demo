@@ -329,7 +329,7 @@ app.get('/')
 app.get('/complex/1', function (req, res) {
   let query = `SELECT TOP(${req.query.count}) ClientId, TelephoneNumber, FullName
   FROM Clients
-  WHERE ClientId NOT IN (
+  WHERE TelephoneNumber IS NOT NULL AND ClientId NOT IN (
   SELECT DISTINCT ClientId
   FROM (
   SELECT  BankAccounts.ClientId, Transactions.Timestamp, Transactions.TransferAccountId, Clients.TelephoneNumber
