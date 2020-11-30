@@ -199,6 +199,85 @@ function WorkerQuery(sqlQuery, req, res) {
   connection.execSql(request);
 }
 
+function ClientQueryNoRes(sqlQuery, req, res) {
+  if (!req.header('Auth-Token')) {
+    err = "You have to provide a token as 'Auth-Token' header to use this method"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  if (!sqlQuery) {
+    err = "You have to provide a query"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  const request = new Request(
+    `IF EXISTS(SELECT * FROM Auth WHERE PasswordHash = '${req.header('Auth-Token')}' AND EXISTS(SELECT * FROM Clients WHERE Auth.AuthId = Clients.AuthId))
+    BEGIN
+      ${sqlQuery}
+    END
+    ELSE
+    BEGIN
+      (SELECT 'AUTH_ERROR')
+    END`, // SQL query
+    (err) => {
+      if (err) {
+        console.error("ERR:" + err.message);
+        res.end(`{"error":${JSON.stringify(err.message)}}`)
+      } else {	
+        res.end(`{"res":"success"}`) // Final response
+      }
+    }
+  );
+  connection.execSql(request);
+}
+
+function ClientQuery(sqlQuery, req, res) {
+  if (!req.header('Auth-Token')) {
+    err = "You have to provide a token as 'Auth-Token' header to use this method"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  if (!sqlQuery) {
+    err = "You have to provide a query"
+    console.error("ERR:" + err);
+    res.end(`{"error":"${err}"}`)
+  }
+  const request = new Request(
+    `IF EXISTS(SELECT * FROM Auth WHERE PasswordHash = '${req.header('Auth-Token')}' AND EXISTS(SELECT * FROM Clients WHERE Auth.AuthId = Clients.AuthId))
+    BEGIN
+      ${sqlQuery}
+    END
+    ELSE
+    BEGIN
+      (SELECT 'AUTH_ERROR')
+    END`, // SQL query
+    (err) => {
+      if (err) {
+        console.error("ERR:" + err.message);
+        res.end(`{"error":${JSON.stringify(err.message)}}`)
+      }
+    }
+  );
+  request.on('doneInProc', function (rowCount, more, rows) { // This event is called after the request if completed
+      // There's too much metadata so we filter some of it out
+      let filtered = "["
+      rows.forEach(row => {
+          filtered += "{"
+          row.forEach(col => {
+              filtered += `"${col.metadata.colName}":"${col.value}",`
+          })
+          filtered = filtered.slice(0, -1) // Removing trailing comma
+          filtered += "},"
+      })
+      filtered = filtered.slice(0, -1) // Removing trailing comma
+      filtered += "]"
+      if (rowCount != undefined) {
+        res.end(`{"count": ${JSON.stringify(rowCount)}, "data": ${rowCount == 0 ? "[]" : filtered}}`) // Final response
+      }
+  });
+  connection.execSql(request);
+}
+
 function FreeQuery(sqlQuery, req, res) {
   if (!sqlQuery) {
     err = "You have to provide a query"
