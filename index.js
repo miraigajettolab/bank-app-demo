@@ -795,6 +795,33 @@ app.get('/view-client-transactions-data', function (req, res) {
   }
 });
 
+app.get('/add-transaction-client', function (req, res) {
+  let query = `DECLARE @ClientId AS INT
+  SET @ClientId = (SELECT ClientId FROM Clients WHERE AuthId = (SELECT AuthId FROM Auth Where PasswordHash = '${req.header('Auth-Token')}'))
+  IF ((SELECT ClientId FROM BankAccounts WHERE BankAccountId = '${req.query.SourceAccountId}') = @ClientId)
+  BEGIN
+    INSERT INTO Transactions(SourceAccountId, TransferAccountId, Total, Currency, Timestamp, Status)
+    VALUES ('${req.query.SourceAccountId}','${req.query.TransferAccountId}', '${req.query.Total}', '${req.query.Currency}', CURRENT_TIMESTAMP, '0');
+  END
+  ELSE
+  BEGIN
+    RAISERROR('Необходимо указать свой счет как счет списания!',15,1);
+  END` // SQL query
+  if(req.query.SourceAccountId.length === 0 || !Number.isInteger(+req.query.SourceAccountId) || parseInt(req.query.SourceAccountId) <= 0){
+    res.end(`{"error":"Предоставьте корректный номер счета с которого будут списаны средства"}`)
+  }
+  else if(req.query.TransferAccountId.length === 0 || !Number.isInteger(+req.query.TransferAccountId) || parseInt(req.query.TransferAccountId) <= 0){
+    res.end(`{"error":"Предоставьте корректный номер счета на который поступят средства"}`)
+  }
+  else if(req.query.Total.length === 0 || (isNaN(parseFloat(req.query.Total)) && isFinite(req.query.Total)) || parseFloat(req.query.Total) < 0){
+    res.end(`{"error":"Введите корректную сумму (неотрицательное вещественное число)"}`)
+  }
+  else {
+    //console.log(query)
+    ClientQueryNoRes(query, req, res)
+  }
+});
+
 /* GET result of some SQL query */
 app.get('/exchange', function (req, res) {
   let query = `SELECT * FROM [dbo].[Exchange]` // SQL query
