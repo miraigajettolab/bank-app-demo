@@ -831,7 +831,12 @@ app.get('/add-transaction-client', function (req, res) {
   }
 });
 
-/* GET result of some SQL query */
+app.get('/view-transactions-data', function (req, res) {
+  let query = `SELECT TOP(${req.query.count}) * FROM TransactionsData
+	WHERE [Timestamp] >= '${req.query.timestampStart}' AND [Timestamp] <= '${req.query.timestampEnd}'` // SQL query
+  AdminQuery(query, req, res)
+});
+
 app.get('/view-services', function (req, res) {
   let query = `SELECT TOP(${req.query.count}) * FROM ServicesData WHERE IsDisabled = '0'` // SQL query
   FreeQuery(query, req, res)
