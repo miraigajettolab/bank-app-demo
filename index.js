@@ -430,40 +430,40 @@ app.get('/complex/8', function (req, res) {
   AdminQuery(query, req, res)
 });
 
-//9 and 10 are for operator and client
+//9 and 10 are deprecated
 
 app.get('/complex/11', function (req, res) {
-  let query = `SELECT Clients.FullName, Clients.ClientID, SUM(BankAccounts.Total) as 'Sum' from BankAccounts
+  let query = `SELECT TOP(${req.query.count}) Clients.FullName, Clients.ClientId, SUM(BankAccounts.Total) as 'Sum' from BankAccounts
   JOIN Clients on BankAccounts.ClientId = Clients.ClientId
   WHERE BankAccounts.IsDebit = 'True' and BankAccounts.Currency = '${req.query.currency}'
-  GROUP BY Clients.FullName, Clients.ClientID
+  GROUP BY Clients.FullName, Clients.ClientId
   ORDER BY 'Sum' DESC` // SQL query
   AdminQuery(query, req, res)
 });
 
 app.get('/complex/12', function (req, res) {
-  let query = `SELECT Clients.FullName, Clients.ClientID, SUM(BankAccounts.Total) as 'Sum' from BankAccounts
+  let query = `SELECT TOP(${req.query.count}) Clients.FullName, Clients.ClientId, SUM(BankAccounts.Total) as 'Sum' from BankAccounts
   JOIN Clients on BankAccounts.ClientId = Clients.ClientId
   WHERE BankAccounts.IsDebit = 'False' and BankAccounts.Currency = '${req.query.currency}'
-  GROUP BY Clients.FullName, Clients.ClientID
+  GROUP BY Clients.FullName, Clients.ClientId
   ORDER BY 'Sum' DESC` // SQL query
   AdminQuery(query, req, res)
 });
 
 app.get('/complex/13', function (req, res) {
-  let query = `SELECT Clients.FullName, Clients.ClientID, SUM(BankAccounts.AccumulatedInterest) as 'Sum' from BankAccounts
+  let query = `SELECT TOP(${req.query.count}) Clients.FullName, Clients.ClientId, SUM(BankAccounts.AccumulatedInterest) as 'Sum' from BankAccounts
   JOIN Clients on BankAccounts.ClientId = Clients.ClientId
   WHERE BankAccounts.IsDebit = 'True' and BankAccounts.Currency = '${req.query.currency}'
-  GROUP BY Clients.FullName, Clients.ClientID
+  GROUP BY Clients.FullName, Clients.ClientId
   ORDER BY 'Sum' DESC` // SQL query
   AdminQuery(query, req, res)
 });
 
 app.get('/complex/14', function (req, res) {
-  let query = `SELECT Clients.FullName, Clients.ClientID, SUM(BankAccounts.AccumulatedInterest) as 'Sum' from BankAccounts
+  let query = `SELECT TOP(${req.query.count}) Clients.FullName, Clients.ClientId, SUM(BankAccounts.AccumulatedInterest) as 'Sum' from BankAccounts
   JOIN Clients on BankAccounts.ClientId = Clients.ClientId
   WHERE BankAccounts.IsDebit = 'False' and BankAccounts.Currency = '${req.query.currency}'
-  GROUP BY Clients.FullName, Clients.ClientID
+  GROUP BY Clients.FullName, Clients.ClientId
   ORDER BY 'Sum' DESC` // SQL query
   AdminQuery(query, req, res)
 });
