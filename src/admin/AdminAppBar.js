@@ -9,6 +9,7 @@ import DeveloperBoardIcon from '@material-ui/icons/DeveloperBoard';
 import TuneIcon from '@material-ui/icons/Tune';
 import GroupIcon from '@material-ui/icons/Group';
 import FindInPageIcon from '@material-ui/icons/FindInPage';
+import SendIcon from '@material-ui/icons/Send';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -52,6 +53,12 @@ export default function ButtonAppBar(props) {
             <FindInPageIcon id="ViewServices" style={{marginRight: "5px"}}/>
             <Typography id="ViewServices"  variant="h6" className={classes.title}>
                 Услуги
+            </Typography>
+          </IconButton>
+          <IconButton edge="start" className={classes.menuButton} id="AdminViewTransactions" color="inherit" aria-label="menu" onClick={e => props.go(e)}>
+            <SendIcon id="AdminViewTransactions" style={{marginRight: "5px"}}/>
+            <Typography id="AdminViewTransactions"  variant="h6" className={classes.title}>
+                Транзакции
             </Typography>
           </IconButton>
             <Typography variant="h6" className={classes.title}>

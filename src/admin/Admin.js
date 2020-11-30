@@ -4,6 +4,7 @@ import AdminAppBar from './AdminAppBar'
 import AdminManageWorkers from './AdminManageWorkers'
 import AdminManageServices from './AdminManageServices'
 import ViewServices from '../util/ViewServices'
+import AdminViewTransactions from './AdminViewTransactions'
 
 class Admin  extends React.Component {
   constructor(props) {
@@ -63,6 +64,13 @@ class Admin  extends React.Component {
         case "ViewServices":
           subPanel = 
           <ViewServices 
+              serverURL = {this.props.serverURL} //passing the props from app.js
+              token = {this.props.token}
+          />
+        break
+        case "AdminViewTransactions":
+          subPanel = 
+          <AdminViewTransactions 
               serverURL = {this.props.serverURL} //passing the props from app.js
               token = {this.props.token}
           />
