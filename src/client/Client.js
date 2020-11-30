@@ -1,12 +1,18 @@
 import React from 'react';
+import ClientAppBar from './ClientAppBar'
+import ClientManageTransactions from './ClientManageTransactions'
 
 class Client extends React.Component {
   constructor(props) {
 		super(props);
 		this.state = {
-
+      activeSubPanel: "ClientManageTransactions",
+      SourceAccountId: "",
+      TransferAccountId: "",
+      Currency: "RUB",
     };
     this.GetIt = this.GetIt.bind(this)
+    this.go = this.go.bind(this)
   }
 
   GetIt(handle, addToken = false) {
@@ -25,6 +31,12 @@ class Client extends React.Component {
     }).then(response => response.json()).then(data => this.setState({"GetResponse":data}))
   }
 
+  go(event) {
+    console.log(event)
+    const id = event.target.id
+    this.setState({activeSubPanel:id})
+  }
+
   componentDidMount() {
     //this.GetIt("https://bank-api.azurewebsites.net/query?table=Exchange&count=20", true)
     //this.GetIt(`http://localhost:5000/complex/1?timestampStart=${this.state.timestampStart}&timestampEnd=${this.state.timestampEnd}`, true)
@@ -33,9 +45,26 @@ class Client extends React.Component {
   }
 
   render() {
+    let subPanel
+    switch(this.state.activeSubPanel) {
+        case "ClientManageTransactions":
+          subPanel = 
+          <ClientManageTransactions 
+              serverURL = {this.props.serverURL} //passing the props from app.js
+              token = {this.props.token}
+              SourceAccountId = {this.state.SourceAccountId}
+              TransferAccountId = {this.state.TransferAccountId}
+              Currency = {this.state.Currency}
+          />
+        break
+        default:
+        break
+    }
+
     return (
       <div className="Client">
-        <p>Я клиент</p>
+        <ClientAppBar logout = {this.props.logout} go={this.go}/>
+        {subPanel}
       </div>
     );
   }
