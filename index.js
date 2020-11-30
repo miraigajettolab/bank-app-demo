@@ -271,7 +271,7 @@ function ClientQuery(sqlQuery, req, res) {
       })
       filtered = filtered.slice(0, -1) // Removing trailing comma
       filtered += "]"
-      if (rowCount != undefined) {
+      if (rowCount != undefined && filtered[0] !== "]") {
         res.end(`{"count": ${JSON.stringify(rowCount)}, "data": ${rowCount == 0 ? "[]" : filtered}}`) // Final response
       }
   });
@@ -762,7 +762,10 @@ app.get('/view-client-data', function (req, res) {
     WorkerQuery(query, req, res)
   }
   else if (req.query.IsWorker === "false") {
-    //TODO:
+    query = `DECLARE @ClientId AS INT
+    SET @ClientId = (SELECT ClientId FROM Clients WHERE AuthId = (SELECT AuthId FROM Auth Where PasswordHash = '${req.header('Auth-Token')}'))
+    SELECT TOP(${req.query.count}) * FROM ClientData WHERE ClientId = @ClientId`
+    ClientQuery(query, req, res)
   }
   else {
     res.end(`{"error":"Ты кто такой вообще?"}`)
@@ -775,7 +778,10 @@ app.get('/view-accounts-data', function (req, res) {
     WorkerQuery(query, req, res)
   }
   else if (req.query.IsWorker === "false") {
-    //TODO:
+    query = `DECLARE @ClientId AS INT
+    SET @ClientId = (SELECT ClientId FROM Clients WHERE AuthId = (SELECT AuthId FROM Auth Where PasswordHash = '${req.header('Auth-Token')}'))
+    SELECT TOP(${req.query.count}) * FROM AccountsData WHERE ClientId = @ClientId`
+    ClientQuery(query, req, res)
   }
   else {
     res.end(`{"error":"Ты кто такой вообще?"}`)
@@ -788,7 +794,10 @@ app.get('/view-client-transactions-data', function (req, res) {
     WorkerQuery(query, req, res)
   }
   else if (req.query.IsWorker === "false") {
-    //TODO:
+    query = `DECLARE @ClientId AS INT
+    SET @ClientId = (SELECT ClientId FROM Clients WHERE AuthId = (SELECT AuthId FROM Auth Where PasswordHash = '${req.header('Auth-Token')}'))
+    SELECT TOP(${req.query.count}) * FROM ClientTransactionsData WHERE ClientId = @ClientId`
+    ClientQuery(query, req, res)
   }
   else {
     res.end(`{"error":"Ты кто такой вообще?"}`)
