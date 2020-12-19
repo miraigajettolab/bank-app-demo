@@ -1,0 +1,13 @@
+﻿  BufferQueue.cpp
+  moc_SystemController.cpp
+  moc_mainwindow.cpp
+  StatisticsController.cpp
+StatisticsController.cpp(21): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  SystemController.cpp
+  main.cpp
+  mainwindow.cpp
+mainwindow.cpp(123): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+mainwindow.cpp(142): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+mainwindow.cpp(158): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  Generating Code...
+  smo.vcxproj -> C:\Users\Serge\Documents\University\smo\smo\debug\smo.exe
