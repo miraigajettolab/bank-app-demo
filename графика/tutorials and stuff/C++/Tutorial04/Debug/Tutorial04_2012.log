@@ -1,0 +1,7 @@
+﻿  compilation object save succeeded; see C:\Users\Josh\Desktop\UNI\графика\tutorials and stuff\C++\Debug\Tutorial04_PS.cso
+  compilation object save succeeded; see C:\Users\Josh\Desktop\UNI\графика\tutorials and stuff\C++\Debug\Tutorial04_VS.cso
+  Tutorial04.cpp
+c:\users\josh\desktop\uni\графика\tutorials and stuff\c++\tutorial04\tutorial04.cpp(568): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  LINK : C:\Users\Josh\Desktop\UNI\графика\tutorials and stuff\C++\Debug\Tutorial04.exe not found or not built by the last incremental link; performing full link
+Tutorial04.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/SAFESEH' specification
+  Tutorial04_2012.vcxproj -> C:\Users\Josh\Desktop\UNI\графика\tutorials and stuff\C++\Debug\Tutorial04.exe
